@@ -77,7 +77,8 @@ func redirectResponseToOutputStream(tty bool, outputStream, errorStream io.Write
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	client, err := dockerclient.NewClient(dockerclient.DefaultDockerHost, "", nil, map[string]string{
+
+	client, err := dockerclient.NewClient("https://192.168.99.100:2376", "18.09.0", nil, map[string]string{
 		"User-Agent": "docker-debug-v0.1.0",
 	})
 
