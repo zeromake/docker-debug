@@ -41,9 +41,9 @@ func holdHijackedConnection(tty bool, inputStream io.Reader, outputStream, error
 	stdinDone := make(chan struct{})
 	go func() {
 		if inputStream != nil {
-			io.Copy(resp.Conn, inputStream)
+			_, _ = io.Copy(resp.Conn, inputStream)
 		}
-		resp.CloseWrite()
+		_ = resp.CloseWrite()
 		close(stdinDone)
 	}()
 
@@ -78,7 +78,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	client, err := dockerclient.NewClient("https://192.168.99.100:2376", "18.09.0", nil, map[string]string{
+	client, err := dockerclient.NewClient(dockerclient.DefaultDockerHost, "", nil, map[string]string{
 		"User-Agent": "docker-debug-v0.1.0",
 	})
 
@@ -109,7 +109,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		term.DisplayJSONMessagesStream(out, os.Stdout, 1, true, nil)
+		_ = term.DisplayJSONMessagesStream(out, os.Stdout, 1, true, nil)
 		out.Close()
 	} else {
 		fmt.Printf("Image: %s is has\n", imageName)
@@ -156,7 +156,7 @@ func main() {
 		}
 		defer func() {
 			var timeout = time.Second * 3
-			client.ContainerStop(ctx, body.ID, &timeout)
+			_ = client.ContainerStop(ctx, body.ID, &timeout)
 			err = client.ContainerRemove(ctx, body.ID, types.ContainerRemoveOptions{})
 			if err != nil {
 				panic(err)
