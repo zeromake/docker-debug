@@ -13,6 +13,7 @@ import (
 	dockertypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	dockerfilters "github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/strslice"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -21,7 +22,7 @@ import (
 
 const imageName = "nicolaka/netshoot:latest"
 
-const containerName = "gaodingx_mysql_1"
+const containerName = "zero-reader_*"
 
 var command = []string{
 	"bash",
@@ -132,6 +133,28 @@ func main() {
 
 	if len(containerList) == 1 {
 		containerObj := containerList[0]
+		info, err := client.ContainerInspect(ctx, containerObj.ID)
+
+		if err != nil {
+			panic(err)
+		}
+		mountDir, ok := info.GraphDriver.Data["MergedDir"]
+		mounts := []mount.Mount{}
+		if ok {
+			mounts = append(mounts, mount.Mount{
+				Type:   "bind",
+				Source: mountDir,
+				Target: "/mnt/container",
+			})
+		}
+		for _, i := range info.Mounts {
+			mounts = append(mounts, mount.Mount{
+				Type:     i.Type,
+				Source:   i.Source,
+				Target:   "/mnt/container" + i.Destination,
+				ReadOnly: !i.RW,
+			})
+		}
 		config := &container.Config{
 			Entrypoint: strslice.StrSlice(command),
 			Image:      imageName,
@@ -146,9 +169,10 @@ func main() {
 			UsernsMode:  container.UsernsMode(targetName),
 			IpcMode:     container.IpcMode(targetName),
 			PidMode:     container.PidMode(targetName),
-			VolumesFrom: []string{
-				targetID,
-			},
+			// VolumesFrom: []string{
+			// 	targetID,
+			// },
+			Mounts: mounts,
 		}
 		body, err := client.ContainerCreate(ctx, config, hostConfig, nil, "")
 		if err != nil {
