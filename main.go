@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"context"
 	"fmt"
 	"io"
@@ -8,6 +9,8 @@ import (
 	"os"
 	"strings"
 	"time"
+	"crypto/tls"
+	"github.com/pkg/errors"
 
 	"github.com/docker/docker/api/types"
 	dockertypes "github.com/docker/docker/api/types"
@@ -18,14 +21,61 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	term "github.com/zeromake/docker-debug/utils"
+	"crypto/x509"
+	"encoding/pem"
 )
 
 const imageName = "nicolaka/netshoot:latest"
 
-const containerName = "zero-reader_*"
+const containerName = "project_redis_*"
 
 var command = []string{
 	"bash",
+}
+const (
+	defaultCertDir = "C:\\Users\\Administrator\\.docker\\machine\\certs"
+	caKey   = "ca.pem"
+	certKey = "cert.pem"
+	keyKey  = "key.pem"
+)
+var clientCipherSuites = []uint16{
+	tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+	tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+	tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+	tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+}
+
+// TLSData tls 配置
+type TLSData struct {
+	CA   []byte
+	Key  []byte
+	Cert []byte
+}
+// TLSDataFromFiles 从证书文件加载tls配置
+func TLSDataFromFiles(caPath, certPath, keyPath string) (*TLSData, error) {
+	var (
+		ca, cert, key []byte
+		err           error
+	)
+	if caPath != "" {
+		if ca, err = ioutil.ReadFile(caPath); err != nil {
+			return nil, err
+		}
+	}
+	if certPath != "" {
+		if cert, err = ioutil.ReadFile(certPath); err != nil {
+			return nil, err
+		}
+	}
+	if keyPath != "" {
+		if key, err = ioutil.ReadFile(keyPath); err != nil {
+			return nil, err
+		}
+	}
+	if ca == nil && cert == nil && key == nil {
+		return nil, nil
+	}
+	return &TLSData{CA: ca, Cert: cert, Key: key}, nil
 }
 
 func containerMode(name string) string {
@@ -74,20 +124,84 @@ func redirectResponseToOutputStream(tty bool, outputStream, errorStream io.Write
 	}
 	return err
 }
+func tlsConfig(tlsData *TLSData) (*tls.Config, error) {
+	if tlsData == nil {
+		// there is no specific tls config
+		return nil, nil
+	}
+	tlsconfig := &tls.Config{
+		// Prefer TLS1.2 as the client minimum
+		MinVersion:   tls.VersionTLS12,
+		CipherSuites: clientCipherSuites,
+	}
+	if tlsData != nil && tlsData.CA != nil {
+		certPool := x509.NewCertPool()
+		if !certPool.AppendCertsFromPEM(tlsData.CA) {
+			return nil, errors.New("failed to retrieve context tls info: ca.pem seems invalid")
+		}
+		tlsconfig.RootCAs = certPool
+	}
+	if tlsData != nil && tlsData.Key != nil && tlsData.Cert != nil {
+		keyBytes := tlsData.Key
+		pemBlock, _ := pem.Decode(keyBytes)
+		if pemBlock == nil {
+			return nil, fmt.Errorf("no valid private key found")
+		}
+
+		var err error
+		if x509.IsEncryptedPEMBlock(pemBlock) {
+			keyBytes, err = x509.DecryptPEMBlock(pemBlock, []byte(""))
+			if err != nil {
+				return nil, errors.Wrap(err, "private key is encrypted, but could not decrypt it")
+			}
+			keyBytes = pem.EncodeToMemory(&pem.Block{Type: pemBlock.Type, Bytes: keyBytes})
+		}
+
+		x509cert, err := tls.X509KeyPair(tlsData.Cert, keyBytes)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to retrieve context tls info")
+		}
+		tlsconfig.Certificates = []tls.Certificate{x509cert}
+	}
+	// if c.SkipTLSVerify {
+	// 	tlsOpts = append(tlsOpts, func(cfg *tls.Config) {
+	// 		cfg.InsecureSkipVerify = true
+	// 	})
+	// }
+
+	return tlsconfig, nil
+}
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	client, err := dockerclient.NewClient(dockerclient.DefaultDockerHost, "", nil, map[string]string{
+	tlsData, err := TLSDataFromFiles(
+		fmt.Sprintf("%s\\%s", defaultCertDir, caKey),
+		fmt.Sprintf("%s\\%s", defaultCertDir, certKey),
+		fmt.Sprintf("%s\\%s", defaultCertDir, keyKey),
+	)
+	if err != nil {
+		panic(err)
+	}
+	tlsconfig, err := tlsConfig(tlsData)
+	if err != nil {
+		panic(err)
+	}
+	httpTransport := &http.Transport{
+		TLSClientConfig: tlsconfig,
+	}
+	httpClient := &http.Client{
+		Transport: httpTransport,
+	}
+	client, err := dockerclient.NewClient("tcp://192.168.99.100:2376", "", httpClient, map[string]string{
 		"User-Agent": "docker-debug-v0.1.0",
 	})
 
 	defer func() {
-		err = client.Close()
-		if err != nil {
-			panic(err)
-		}
+		// err = client.Close()
+		// if err != nil {
+		// 	panic(err)
+		// }
 	}()
 	if err != nil {
 		panic(err)
@@ -147,14 +261,14 @@ func main() {
 				Target: "/mnt/container",
 			})
 		}
-		for _, i := range info.Mounts {
-			mounts = append(mounts, mount.Mount{
-				Type:     i.Type,
-				Source:   i.Source,
-				Target:   "/mnt/container" + i.Destination,
-				ReadOnly: !i.RW,
-			})
-		}
+		// for _, i := range info.Mounts {
+		// 	mounts = append(mounts, mount.Mount{
+		// 		Type:     i.Type,
+		// 		Source:   i.Source,
+		// 		Target:   "/mnt/container" + i.Destination,
+		// 		ReadOnly: !i.RW,
+		// 	})
+		// }
 		config := &container.Config{
 			Entrypoint: strslice.StrSlice(command),
 			Image:      imageName,

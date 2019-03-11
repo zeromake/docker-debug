@@ -12,9 +12,10 @@ require (
 	github.com/docker/go-units v0.3.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
-	golang.org/x/net v0.0.0-20190206173232-65e2d4e15006 // indirect
+	github.com/pkg/errors v0.8.1
+	golang.org/x/net v0.0.0-20190206173232-65e2d4e15006
 	golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a // indirect
+	golang.org/x/text v0.3.0 // indirect
 )
 
 replace github.com/Sirupsen/logrus v1.3.0 => github.com/sirupsen/logrus v1.3.0
