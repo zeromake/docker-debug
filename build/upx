@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+source ./build/.variables
+
+upx -q ${TARGET} -o ${TARGET}-upx
+
+ln -sf "$(basename "${TARGET}-upx")" dist/docker-debug
