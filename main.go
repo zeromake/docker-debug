@@ -1,16 +1,13 @@
 package main
 
 import (
-	"net/http"
 	"context"
+	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 	"time"
-	"crypto/tls"
-	"github.com/pkg/errors"
 
 	"github.com/docker/docker/api/types"
 	dockertypes "github.com/docker/docker/api/types"
@@ -19,193 +16,143 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/strslice"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
-	term "github.com/zeromake/docker-debug/utils"
-	"crypto/x509"
-	"encoding/pem"
+	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/docker/pkg/signal"
+	"github.com/zeromake/docker-debug/pkg/stream"
+	"github.com/zeromake/docker-debug/pkg/term"
+	"github.com/zeromake/docker-debug/pkg/tty"
 )
 
 const imageName = "nicolaka/netshoot:latest"
 
-const containerName = "project_redis_*"
+const containerName = "caishichang_mysql_*"
 
 var command = []string{
 	"bash",
 }
-const (
-	defaultCertDir = "C:\\Users\\Administrator\\.docker\\machine\\certs"
-	caKey   = "ca.pem"
-	certKey = "cert.pem"
-	keyKey  = "key.pem"
-)
-var clientCipherSuites = []uint16{
-	tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-	tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-	tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-	tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+
+// const (
+// 	defaultCertDir = "C:\\Users\\Administrator\\.docker\\machine\\certs"
+// 	caKey          = "ca.pem"
+// 	certKey        = "cert.pem"
+// 	keyKey         = "key.pem"
+// )
+
+type streams struct {
+	out *stream.OutStream
+	in  *stream.InStream
 }
 
-// TLSData tls 配置
-type TLSData struct {
-	CA   []byte
-	Key  []byte
-	Cert []byte
+func (s *streams) Out() *stream.OutStream {
+	return s.out
 }
-// TLSDataFromFiles 从证书文件加载tls配置
-func TLSDataFromFiles(caPath, certPath, keyPath string) (*TLSData, error) {
-	var (
-		ca, cert, key []byte
-		err           error
-	)
-	if caPath != "" {
-		if ca, err = ioutil.ReadFile(caPath); err != nil {
-			return nil, err
-		}
-	}
-	if certPath != "" {
-		if cert, err = ioutil.ReadFile(certPath); err != nil {
-			return nil, err
-		}
-	}
-	if keyPath != "" {
-		if key, err = ioutil.ReadFile(keyPath); err != nil {
-			return nil, err
-		}
-	}
-	if ca == nil && cert == nil && key == nil {
-		return nil, nil
-	}
-	return &TLSData{CA: ca, Cert: cert, Key: key}, nil
+func (s *streams) In() *stream.InStream {
+	return s.in
 }
 
 func containerMode(name string) string {
 	return fmt.Sprintf("container:%s", name)
 }
-func holdHijackedConnection(tty bool, inputStream io.Reader, outputStream, errorStream io.Writer, resp dockertypes.HijackedResponse) error {
-	receiveStdout := make(chan error)
-	if outputStream != nil || errorStream != nil {
-		go func() {
-			receiveStdout <- redirectResponseToOutputStream(tty, outputStream, errorStream, resp.Reader)
-		}()
-	}
 
-	stdinDone := make(chan struct{})
-	go func() {
-		if inputStream != nil {
-			_, _ = io.Copy(resp.Conn, inputStream)
-		}
-		_ = resp.CloseWrite()
-		close(stdinDone)
-	}()
+// func holdHijackedConnection(tty bool, inputStream io.Reader, outputStream, errorStream io.Writer, resp dockertypes.HijackedResponse) error {
+// 	receiveStdout := make(chan error)
+// 	if outputStream != nil || errorStream != nil {
+// 		go func() {
+// 			receiveStdout <- redirectResponseToOutputStream(tty, outputStream, errorStream, resp.Reader)
+// 		}()
+// 	}
 
-	select {
-	case err := <-receiveStdout:
-		return err
-	case <-stdinDone:
-		if outputStream != nil || errorStream != nil {
-			return <-receiveStdout
-		}
-	}
-	return nil
-}
+// 	stdinDone := make(chan struct{})
+// 	go func() {
+// 		if inputStream != nil {
+// 			_, _ = io.Copy(resp.Conn, inputStream)
+// 		}
+// 		_ = resp.CloseWrite()
+// 		close(stdinDone)
+// 	}()
 
-func redirectResponseToOutputStream(tty bool, outputStream, errorStream io.Writer, resp io.Reader) error {
-	if outputStream == nil {
-		outputStream = ioutil.Discard
-	}
-	if errorStream == nil {
-		errorStream = ioutil.Discard
-	}
-	var err error
-	if tty {
-		_, err = io.Copy(outputStream, resp)
-	} else {
-		_, err = stdcopy.StdCopy(outputStream, errorStream, resp)
-	}
-	return err
-}
-func tlsConfig(tlsData *TLSData) (*tls.Config, error) {
-	if tlsData == nil {
-		// there is no specific tls config
-		return nil, nil
-	}
-	tlsconfig := &tls.Config{
-		// Prefer TLS1.2 as the client minimum
-		MinVersion:   tls.VersionTLS12,
-		CipherSuites: clientCipherSuites,
-	}
-	if tlsData != nil && tlsData.CA != nil {
-		certPool := x509.NewCertPool()
-		if !certPool.AppendCertsFromPEM(tlsData.CA) {
-			return nil, errors.New("failed to retrieve context tls info: ca.pem seems invalid")
-		}
-		tlsconfig.RootCAs = certPool
-	}
-	if tlsData != nil && tlsData.Key != nil && tlsData.Cert != nil {
-		keyBytes := tlsData.Key
-		pemBlock, _ := pem.Decode(keyBytes)
-		if pemBlock == nil {
-			return nil, fmt.Errorf("no valid private key found")
-		}
+// 	select {
+// 	case err := <-receiveStdout:
+// 		return err
+// 	case <-stdinDone:
+// 		if outputStream != nil || errorStream != nil {
+// 			return <-receiveStdout
+// 		}
+// 	}
+// 	return nil
+// }
 
-		var err error
-		if x509.IsEncryptedPEMBlock(pemBlock) {
-			keyBytes, err = x509.DecryptPEMBlock(pemBlock, []byte(""))
-			if err != nil {
-				return nil, errors.Wrap(err, "private key is encrypted, but could not decrypt it")
-			}
-			keyBytes = pem.EncodeToMemory(&pem.Block{Type: pemBlock.Type, Bytes: keyBytes})
-		}
-
-		x509cert, err := tls.X509KeyPair(tlsData.Cert, keyBytes)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to retrieve context tls info")
-		}
-		tlsconfig.Certificates = []tls.Certificate{x509cert}
+// func redirectResponseToOutputStream(tty bool, outputStream, errorStream io.Writer, resp io.Reader) error {
+// 	if outputStream == nil {
+// 		outputStream = ioutil.Discard
+// 	}
+// 	if errorStream == nil {
+// 		errorStream = ioutil.Discard
+// 	}
+// 	var err error
+// 	if tty {
+// 		_, err = io.Copy(outputStream, resp)
+// 	} else {
+// 		_, err = stdcopy.StdCopy(outputStream, errorStream, resp)
+// 	}
+// 	return err
+// }
+func resizeTTY(ctx context.Context, out *stream.OutStream, client dockerclient.ContainerAPIClient, containerID string) {
+	height, width := out.GetTtySize()
+	tty.ResizeTtyTo(
+		ctx,
+		client,
+		containerID,
+		height+1,
+		width+1,
+		false,
+	)
+	if err := tty.MonitorTtySize(
+		ctx,
+		client,
+		out,
+		containerID,
+		false,
+	); err != nil {
+		fmt.Printf("Error monitoring TTY size: %s\n", err)
 	}
-	// if c.SkipTLSVerify {
-	// 	tlsOpts = append(tlsOpts, func(cfg *tls.Config) {
-	// 		cfg.InsecureSkipVerify = true
-	// 	})
-	// }
-
-	return tlsconfig, nil
 }
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	tlsData, err := TLSDataFromFiles(
-		fmt.Sprintf("%s\\%s", defaultCertDir, caKey),
-		fmt.Sprintf("%s\\%s", defaultCertDir, certKey),
-		fmt.Sprintf("%s\\%s", defaultCertDir, keyKey),
-	)
-	if err != nil {
-		panic(err)
-	}
-	tlsconfig, err := tlsConfig(tlsData)
-	if err != nil {
-		panic(err)
-	}
-	httpTransport := &http.Transport{
-		TLSClientConfig: tlsconfig,
-	}
-	httpClient := &http.Client{
-		Transport: httpTransport,
-	}
-	client, err := dockerclient.NewClient("tcp://192.168.99.100:2376", "", httpClient, map[string]string{
+	stdin, stdout, stderr := term.StdStreams()
+	// tlsconfig, err := debug.TLSConfigFromFiles(
+	// 	fmt.Sprintf("%s\\%s", defaultCertDir, caKey),
+	// 	fmt.Sprintf("%s\\%s", defaultCertDir, certKey),
+	// 	fmt.Sprintf("%s\\%s", defaultCertDir, keyKey),
+	// 	"",
+	// 	false,
+	// )
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// httpTransport := &http.Transport{
+	// 	TLSClientConfig: tlsconfig,
+	// }
+	// httpClient := &http.Client{
+	// 	Transport: httpTransport,
+	// }
+	var httpClient *http.Client = nil
+	// "tcp://192.168.99.100:2376"
+	client, err := dockerclient.NewClient(dockerclient.DefaultDockerHost, "", httpClient, map[string]string{
 		"User-Agent": "docker-debug-v0.1.0",
 	})
-
-	defer func() {
-		// err = client.Close()
-		// if err != nil {
-		// 	panic(err)
-		// }
-	}()
 	if err != nil {
 		panic(err)
 	}
+	defer func() {
+		err = client.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+	out := stream.NewOutStream(stdout)
 	args := dockerfilters.NewArgs()
 	args.Add("reference", imageName)
 	images, err := client.ImageList(ctx, dockertypes.ImageListOptions{
@@ -220,12 +167,16 @@ func main() {
 		if strings.IndexRune(temps[0], '.') == -1 {
 			name = "docker.io/" + imageName
 		}
-		out, err := client.ImagePull(ctx, name, dockertypes.ImagePullOptions{})
+		responseBody, err := client.ImagePull(ctx, name, dockertypes.ImagePullOptions{})
 		if err != nil {
 			panic(err)
 		}
-		_ = term.DisplayJSONMessagesStream(out, os.Stdout, 1, true, nil)
-		out.Close()
+		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
+		// _ = term.DisplayJSONMessagesStream(responseBody, os.Stdout, 1, true, nil)
+		responseBody.Close()
+		if err != nil {
+			panic(err)
+		}
 	} else {
 		fmt.Printf("Image: %s is has\n", imageName)
 	}
@@ -305,21 +256,73 @@ func main() {
 			panic(err)
 		}
 
-		opts := dockertypes.ContainerAttachOptions{
-			Stream: true,
-			Stdin:  true,
-			Stdout: true,
-			Stderr: true,
+		// opts := dockertypes.ContainerAttachOptions{
+		// 	Stream: true,
+		// 	Stdin:  true,
+		// 	Stdout: true,
+		// 	Stderr: true,
+		// }
+		if !info.Config.Tty {
+			sigc := tty.ForwardAllSignals(ctx, client, body.ID)
+			defer signal.StopCatch(sigc)
+		}
+		execConfig := dockertypes.ExecConfig{
+			AttachStdin:  true,
+			AttachStderr: true,
+			AttachStdout: true,
+			Tty:          false,
+			Cmd:          command,
 		}
 
-		resp, err := client.ContainerAttach(ctx, body.ID, opts)
+		response, err := client.ContainerExecCreate(ctx, body.ID, execConfig)
 		if err != nil {
 			panic(err)
 		}
-		err = holdHijackedConnection(true, os.Stdin, os.Stdout, os.Stderr, resp)
+
+		execID := response.ID
+		if execID == "" {
+			panic(errors.New("exec ID empty"))
+		}
+		execStartCheck := dockertypes.ExecConfig{
+			Tty: false,
+		}
+		resp, err := client.ContainerExecAttach(ctx, execID, execStartCheck)
 		if err != nil {
 			panic(err)
 		}
+		fmt.Println(info.Config.Tty)
+		if info.Config.Tty && out.IsTerminal() {
+			resizeTTY(ctx, out, client, body.ID)
+		}
+		in := stream.NewInStream(stdin)
+		s := &streams{
+			out: out,
+			in:  in,
+		}
+		if !info.Config.Tty {
+			stderr = os.Stdout
+		}
+		streamer := tty.HijackedIOStreamer{
+			Streams:      s,
+			InputStream:  in,
+			OutputStream: out,
+			ErrorStream:  stderr,
+			Resp:         resp,
+			TTY:          false,
+		}
+		// go func() {
+		// 	timer := time.NewTimer(time.Second * 2)
+		// 	<-timer.C
+		// 	_, _ = os.Stdin.WriteString("ls\n")
+		// }()
+		if err := streamer.Stream(ctx); err != nil {
+			panic(err)
+		}
+
+		// err = holdHijackedConnection(true, os.Stdin, os.Stdout, os.Stderr, resp)
+		// if err != nil {
+		// 	panic(err)
+		// }
 	} else {
 		for _, containerItem := range containerList {
 			fmt.Printf("Container:\t%s\t%s\n", containerItem.Names[0], containerItem.ID)

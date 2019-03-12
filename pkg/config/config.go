@@ -1,4 +1,4 @@
-package debug
+package config
 
 import (
 	"fmt"
