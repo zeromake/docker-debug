@@ -1,4 +1,8 @@
 *.exe
+*.exe~
+*.orig
+.*.swp
+.DS_Store
 /.vscode/
 /dist/
 /vendor/
