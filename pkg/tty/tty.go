@@ -8,10 +8,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/sirupsen/logrus"
+	"github.com/zeromake/moby/api/types"
+	"github.com/zeromake/moby/client"
+	"github.com/zeromake/moby/pkg/signal"
 	"github.com/zeromake/docker-debug/pkg/stream"
 )
 

@@ -9,17 +9,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	dockertypes "github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	dockerfilters "github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/strslice"
-	dockerclient "github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/zeromake/moby/api/types"
+	dockertypes "github.com/zeromake/moby/api/types"
+	"github.com/zeromake/moby/api/types/container"
+	dockerfilters "github.com/zeromake/moby/api/types/filters"
+	"github.com/zeromake/moby/api/types/mount"
+	"github.com/zeromake/moby/api/types/strslice"
+	dockerclient "github.com/zeromake/moby/client"
+	"github.com/zeromake/moby/pkg/jsonmessage"
+	"github.com/zeromake/moby/pkg/signal"
 	"github.com/zeromake/docker-debug/pkg/stream"
-	"github.com/zeromake/docker-debug/pkg/term"
+	"github.com/zeromake/moby/pkg/term"
 	"github.com/zeromake/docker-debug/pkg/tty"
 )
 
@@ -283,7 +283,7 @@ func main() {
 		if execID == "" {
 			panic(errors.New("exec ID empty"))
 		}
-		execStartCheck := dockertypes.ExecConfig{
+		execStartCheck := dockertypes.ExecStartCheck{
 			Tty: false,
 		}
 		resp, err := client.ContainerExecAttach(ctx, execID, execStartCheck)

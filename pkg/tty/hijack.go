@@ -6,13 +6,13 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/sirupsen/logrus"
+	"github.com/zeromake/moby/api/types"
+	"github.com/zeromake/moby/pkg/ioutils"
+	"github.com/zeromake/moby/pkg/stdcopy"
 	"github.com/pkg/errors"
 	"github.com/zeromake/docker-debug/pkg/stream"
-	"github.com/zeromake/docker-debug/pkg/term"
+	"github.com/zeromake/moby/pkg/term"
 )
 
 // The default escape key sequence: ctrl-p, ctrl-q
@@ -198,7 +198,7 @@ func restoreTerminal(streams stream.Streams, in io.Closer) error {
 	// until we find a better solution.
 	//
 	// This can also cause the client on Windows to get stuck in Win32 CloseHandle()
-	// in some cases. See https://github.com/docker/docker/issues/28267#issuecomment-288237442
+	// in some cases. See https://github.com/zeromake/moby/issues/28267#issuecomment-288237442
 	// Tracked internally at Microsoft by VSO #11352156. In the
 	// Windows case, you hit this if you are using the native/v2 console,
 	// not the "legacy" console, and you start the client in a new window. eg

@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"github.com/zeromake/docker-debug/pkg/term"
+	"github.com/zeromake/moby/pkg/term"
 )
 
 // OutStream is an output stream used by the DockerCli to write normal program

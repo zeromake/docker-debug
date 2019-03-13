@@ -5,7 +5,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/docker/docker/client"
+	"github.com/zeromake/moby/client"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/zeromake/docker-debug/pkg/cmd/version"

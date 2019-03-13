@@ -6,7 +6,7 @@ import (
 	"runtime"
 
 	"github.com/pkg/errors"
-	"github.com/zeromake/docker-debug/pkg/term"
+	"github.com/zeromake/moby/pkg/term"
 )
 
 // InStream is an input stream used by the DockerCli to read user input
