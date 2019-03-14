@@ -2,7 +2,10 @@
 
 package opts
 
-import "fmt"
-
+import (
+	"fmt"
+)
 // DefaultHost constant defines the default host string used by docker on other hosts than Windows
 var DefaultHost = fmt.Sprintf("unix://%s", DefaultUnixSocket)
+
+const DefaultHTTPHost = "localhost"

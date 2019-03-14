@@ -1,10 +1,15 @@
 package command
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
+	"os"
 )
 
+var rootCmd = newExecCommand()
+
 type execOptions struct {
+	host 		string
 	image       string
 	detachKeys  string
 	interactive bool
@@ -20,7 +25,7 @@ func newExecOptions() execOptions {
 	return execOptions{}
 }
 
-func NewExecCommand(dockerCli Cli) *cobra.Command {
+func newExecCommand() *cobra.Command {
 	options := newExecOptions()
 
 	cmd := &cobra.Command{
@@ -30,14 +35,15 @@ func NewExecCommand(dockerCli Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.container = args[0]
 			options.command = args[1:]
-			return runExec(dockerCli, options)
+			return runExec(options)
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.StringVarP(&options.image, "image", "", "", "base this image")
+	flags.StringVarP(&options.image, "image", "", "", "use this image")
+	flags.StringVarP(&options.host, "host", "", "", "conn this host's docker (format: tcp://192.168.99.100:2376)")
 	flags.StringVarP(&options.detachKeys, "detach-keys", "", "", "Override the key sequence for detaching a container")
 	flags.BoolVarP(&options.interactive, "interactive", "i", false, "Keep STDIN open even if not attached")
 	flags.BoolVarP(&options.tty, "tty", "t", false, "Allocate a pseudo-TTY")
@@ -48,6 +54,14 @@ func NewExecCommand(dockerCli Cli) *cobra.Command {
 	return cmd
 }
 
-func runExec(cli Cli, options execOptions) error {
+func runExec(options execOptions) error {
+	fmt.Println(options)
 	return nil
 }
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}
+
