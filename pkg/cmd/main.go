@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zeromake/docker-debug/pkg/stream"
+	"github.com/zeromake/docker-debug/pkg/tty"
 	"github.com/zeromake/moby/api/types"
 	dockertypes "github.com/zeromake/moby/api/types"
 	"github.com/zeromake/moby/api/types/container"
@@ -18,9 +20,7 @@ import (
 	dockerclient "github.com/zeromake/moby/client"
 	"github.com/zeromake/moby/pkg/jsonmessage"
 	"github.com/zeromake/moby/pkg/signal"
-	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/zeromake/moby/pkg/term"
-	"github.com/zeromake/docker-debug/pkg/tty"
 )
 
 const imageName = "nicolaka/netshoot:latest"
@@ -255,6 +255,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		var TTY = true
 
 		// opts := dockertypes.ContainerAttachOptions{
 		// 	Stream: true,
@@ -262,7 +263,7 @@ func main() {
 		// 	Stdout: true,
 		// 	Stderr: true,
 		// }
-		if !info.Config.Tty {
+		if !TTY {
 			sigc := tty.ForwardAllSignals(ctx, client, body.ID)
 			defer signal.StopCatch(sigc)
 		}
@@ -270,7 +271,7 @@ func main() {
 			AttachStdin:  true,
 			AttachStderr: true,
 			AttachStdout: true,
-			Tty:          false,
+			Tty:          true,
 			Cmd:          command,
 		}
 
@@ -284,14 +285,13 @@ func main() {
 			panic(errors.New("exec ID empty"))
 		}
 		execStartCheck := dockertypes.ExecStartCheck{
-			Tty: false,
+			Tty: true,
 		}
 		resp, err := client.ContainerExecAttach(ctx, execID, execStartCheck)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(info.Config.Tty)
-		if info.Config.Tty && out.IsTerminal() {
+		if TTY && out.IsTerminal() {
 			resizeTTY(ctx, out, client, body.ID)
 		}
 		in := stream.NewInStream(stdin)
@@ -299,7 +299,7 @@ func main() {
 			out: out,
 			in:  in,
 		}
-		if !info.Config.Tty {
+		if !TTY {
 			stderr = os.Stdout
 		}
 		streamer := tty.HijackedIOStreamer{
@@ -308,7 +308,7 @@ func main() {
 			OutputStream: out,
 			ErrorStream:  stderr,
 			Resp:         resp,
-			TTY:          false,
+			TTY:          TTY,
 		}
 		// go func() {
 		// 	timer := time.NewTimer(time.Second * 2)
