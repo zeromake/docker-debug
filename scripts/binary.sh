@@ -4,7 +4,7 @@
 #
 
 
-source ./build/.variables
+source ./scripts/variables.env
 
 echo "Building statically linked $TARGET"
 export CGO_ENABLED=0

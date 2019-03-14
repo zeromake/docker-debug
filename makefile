@@ -3,11 +3,11 @@ all: binary
 .PHONY: binary
 binary: ## build executable for Linux
 	@echo "WARNING: binary creates a Linux executable. Use cross for macOS or Windows."
-	./build/binary
+	./scripts/binary
 
 .PHONY: upx
 upx:
-	./build/upx
+	./scripts/upx
 
 .PHONY: clean
 clean:
@@ -15,5 +15,5 @@ clean:
 
 .PHONY: binary-upx
 binary-upx:
-	./build/binary
-	./build/upx
+	./scripts/binary
+	./scripts/upx

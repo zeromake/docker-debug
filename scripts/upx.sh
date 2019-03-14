@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./build/.variables
+source ./scripts/variables.env
 
 upx -q ${TARGET} -o ${TARGET}-upx
 

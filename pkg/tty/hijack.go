@@ -6,12 +6,12 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/zeromake/moby/api/types"
 	"github.com/zeromake/moby/pkg/ioutils"
 	"github.com/zeromake/moby/pkg/stdcopy"
-	"github.com/pkg/errors"
-	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/zeromake/moby/pkg/term"
 )
 
@@ -124,9 +124,6 @@ func (h *HijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error
 		// When TTY is ON, use regular copy
 		if h.OutputStream != nil && h.TTY {
 			_, err = io.Copy(h.OutputStream, h.Resp.Reader)
-			// We should restore the terminal as soon as possible
-			// once the connection ends so any following print
-			// messages will be in normal type.
 			restoreInput()
 		} else {
 			_, err = stdcopy.StdCopy(h.OutputStream, h.ErrorStream, h.Resp.Reader)
@@ -151,9 +148,6 @@ func (h *HijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan
 	go func() {
 		if h.InputStream != nil {
 			_, err := io.Copy(h.Resp.Conn, h.InputStream)
-			// We should restore the terminal as soon as possible
-			// once the connection ends so any following print
-			// messages will be in normal type.
 			restoreInput()
 
 			logrus.Debug("[hijack] End of stdin")
@@ -164,9 +158,6 @@ func (h *HijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan
 			}
 
 			if err != nil {
-				// This error will also occur on the receive
-				// side (from stdout) where it will be
-				// propagated back to the caller.
 				logrus.Debugf("Error sendStdin: %s", err)
 			}
 		}
@@ -192,18 +183,6 @@ func setRawTerminal(streams stream.Streams) error {
 func restoreTerminal(streams stream.Streams, in io.Closer) error {
 	_ = streams.In().RestoreTerminal()
 	_ = streams.Out().RestoreTerminal()
-	// WARNING: DO NOT REMOVE THE OS CHECKS !!!
-	// For some reason this Close call blocks on darwin..
-	// As the client exits right after, simply discard the close
-	// until we find a better solution.
-	//
-	// This can also cause the client on Windows to get stuck in Win32 CloseHandle()
-	// in some cases. See https://github.com/zeromake/moby/issues/28267#issuecomment-288237442
-	// Tracked internally at Microsoft by VSO #11352156. In the
-	// Windows case, you hit this if you are using the native/v2 console,
-	// not the "legacy" console, and you start the client in a new window. eg
-	// `start docker run --rm -it microsoft/nanoserver cmd /s /c echo foobar`
-	// will hang. Remove start, and it won't repro.
 	if in != nil && runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
 		return in.Close()
 	}

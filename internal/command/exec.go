@@ -5,15 +5,15 @@ import (
 )
 
 type execOptions struct {
+	image       string
 	detachKeys  string
 	interactive bool
 	tty         bool
-	// detach      bool
-	user       string
-	privileged bool
-	workdir    string
-	container  string
-	command    []string
+	user        string
+	privileged  bool
+	workdir     string
+	container   string
+	command     []string
 }
 
 func newExecOptions() execOptions {
@@ -37,17 +37,14 @@ func NewExecCommand(dockerCli Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
+	flags.StringVarP(&options.image, "image", "", "", "base this image")
 	flags.StringVarP(&options.detachKeys, "detach-keys", "", "", "Override the key sequence for detaching a container")
 	flags.BoolVarP(&options.interactive, "interactive", "i", false, "Keep STDIN open even if not attached")
 	flags.BoolVarP(&options.tty, "tty", "t", false, "Allocate a pseudo-TTY")
-	// flags.BoolVarP(&options.detach, "detach", "d", false, "Detached mode: run command in the background")
 	flags.StringVarP(&options.user, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
 	flags.BoolVarP(&options.privileged, "privileged", "", false, "Give extended privileges to the command")
-	// flags.VarP(&options.env, "env", "e", "Set environment variables")
-	// flags.SetAnnotation("env", "version", []string{"1.25"})
 	flags.StringVarP(&options.workdir, "workdir", "w", "", "Working directory inside the container")
 	_ = flags.SetAnnotation("workdir", "version", []string{"1.35"})
-
 	return cmd
 }
 

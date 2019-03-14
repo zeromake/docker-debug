@@ -5,16 +5,16 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/zeromake/moby/client"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
-	"github.com/zeromake/docker-debug/pkg/cmd/version"
+	"github.com/zeromake/docker-debug/cmd/version"
 	"github.com/zeromake/docker-debug/pkg/opts"
 	"github.com/zeromake/docker-debug/pkg/stream"
-	pkgterm "github.com/zeromake/docker-debug/pkg/term"
+	"github.com/zeromake/moby/client"
+	pkgterm "github.com/zeromake/moby/pkg/term"
 )
 
-type DockerCliOption func(cli *DockerCli) error
+type DebugCliOption func(cli *DebugCli) error
 
 type Cli interface {
 	Client() client.APIClient
@@ -26,7 +26,7 @@ type Cli interface {
 	ClientInfo() ClientInfo
 }
 
-type DockerCli struct {
+type DebugCli struct {
 	in         *stream.InStream
 	out        *stream.OutStream
 	err        io.Writer
@@ -35,8 +35,8 @@ type DockerCli struct {
 	clientInfo ClientInfo
 }
 
-func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
-	cli := &DockerCli{}
+func NewDockerCli(ops ...DebugCliOption) (*DebugCli, error) {
+	cli := &DebugCli{}
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 }
 
 // Apply all the operation on the cli
-func (cli *DockerCli) Apply(ops ...DockerCliOption) error {
+func (cli *DebugCli) Apply(ops ...DebugCliOption) error {
 	for _, op := range ops {
 		if err := op(cli); err != nil {
 			return err
@@ -99,42 +99,42 @@ type ClientInfo struct {
 }
 
 // DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
-func (cli *DockerCli) DefaultVersion() string {
+func (cli *DebugCli) DefaultVersion() string {
 	return cli.clientInfo.DefaultVersion
 }
 
 // Client returns the APIClient
-func (cli *DockerCli) Client() client.APIClient {
+func (cli *DebugCli) Client() client.APIClient {
 	return cli.client
 }
 
 // Out returns the writer used for stdout
-func (cli *DockerCli) Out() *stream.OutStream {
+func (cli *DebugCli) Out() *stream.OutStream {
 	return cli.out
 }
 
 // Err returns the writer used for stderr
-func (cli *DockerCli) Err() io.Writer {
+func (cli *DebugCli) Err() io.Writer {
 	return cli.err
 }
 
 // SetIn sets the reader used for stdin
-func (cli *DockerCli) SetIn(in *stream.InStream) {
+func (cli *DebugCli) SetIn(in *stream.InStream) {
 	cli.in = in
 }
 
 // In returns the reader used for stdin
-func (cli *DockerCli) In() *stream.InStream {
+func (cli *DebugCli) In() *stream.InStream {
 	return cli.in
 }
 
 // ServerInfo returns the server version details for the host this client is
 // connected to
-func (cli *DockerCli) ServerInfo() ServerInfo {
+func (cli *DebugCli) ServerInfo() ServerInfo {
 	return cli.serverInfo
 }
 
 // ClientInfo returns the client details for the cli
-func (cli *DockerCli) ClientInfo() ClientInfo {
+func (cli *DebugCli) ClientInfo() ClientInfo {
 	return cli.clientInfo
 }
