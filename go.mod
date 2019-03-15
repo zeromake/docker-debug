@@ -3,6 +3,7 @@ module github.com/zeromake/docker-debug
 go 1.12
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/docker/go-connections v0.4.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.8.1
