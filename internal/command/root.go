@@ -1,10 +1,12 @@
 package command
 
 import (
+	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/zeromake/docker-debug/internal/config"
-	"os"
+	"github.com/zeromake/docker-debug/pkg/tty"
 )
 
 var rootCmd = newExecCommand()
@@ -52,6 +54,8 @@ func newExecCommand() *cobra.Command {
 }
 
 func runExec(options execOptions) error {
+	//logrus.SetLevel(logrus.DebugLevel)
+	var containerId string
 	conf, err := config.LoadConfig()
 	opts := []DebugCliOption{
 		WithConfig(conf),
@@ -72,6 +76,18 @@ func runExec(options execOptions) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if containerId != "" {
+			err = cli.ContainerClean(containerId)
+			if err != nil {
+				logrus.Debugf("%+v", err)
+			}
+		}
+		err = cli.Close()
+		if err != nil {
+			logrus.Debugf("%+v", err)
+		}
+	}()
 	_, err = cli.Ping()
 	if err != nil {
 		return err
@@ -89,7 +105,7 @@ func runExec(options execOptions) error {
 			return err
 		}
 	}
-	containerId, err := cli.FindContainer(options.container)
+	containerId, err = cli.FindContainer(options.container)
 	if err != nil {
 		return err
 	}
@@ -97,20 +113,35 @@ func runExec(options execOptions) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		_ = cli.ContainerClean(containerId)
-	}()
 	resp, err := cli.ExecCreate(options, containerId)
 	if err != nil {
 		return err
 	}
-	return cli.ExecStart(options, resp.ID)
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		defer close(errCh)
+		errCh <- func() error {
+			return cli.ExecStart(options, resp.ID)
+		}()
+	}()
+	if cli.In().IsTerminal() {
+		if err := tty.MonitorTtySize(context.Background(), cli.Client(), cli.Out(), resp.ID, true); err != nil {
+			_, _ = fmt.Fprintln(cli.Err(), "Error monitoring TTY size:", err)
+		}
+	}
+
+	if err := <-errCh; err != nil {
+		logrus.Debugf("Error hijack: %s", err)
+		return err
+	}
+	return nil
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Printf("%+v\n", err)
-		os.Exit(1)
+		logrus.Debugf("%+v", err)
 	}
 }
 

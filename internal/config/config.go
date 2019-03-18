@@ -47,7 +47,7 @@ type DockerConfig struct {
 // Config 配置
 type Config struct {
 	Image               string
-	Command             []string
+	//Command             []string
 	Timeout             time.Duration
 	DockerConfigDefault string
 	DockerConfig        map[string]DockerConfig
@@ -79,7 +79,6 @@ func InitConfig() (*Config, error) {
 		return nil, errors.WithStack(err)
 	}
 	if !pathExists(configDir) {
-		fmt.Println("--------------", configDir)
 		err = os.Mkdir(configDir, 0755)
 		if err != nil {
 			return nil, errors.WithStack(err)
@@ -87,10 +86,10 @@ func InitConfig() (*Config, error) {
 	}
 	config := &Config{
 		Image:               "nicolaka/netshoot:latest",
-		Command:             []string{
-			"bash",
-			"-l",
-		},
+		//Command:             []string{
+		//	"sleep",
+		//	"24h",
+		//},
 		Timeout:             time.Second * 10,
 		DockerConfigDefault: "default",
 		DockerConfig: map[string]DockerConfig{

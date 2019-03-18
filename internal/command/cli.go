@@ -13,7 +13,6 @@ import (
 	"github.com/zeromake/moby/api/types/strslice"
 	"github.com/zeromake/moby/pkg/jsonmessage"
 	"io"
-	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -105,15 +104,21 @@ func WithConfig(config *config.Config) DebugCliOption {
 
 func WithClientConfig(dockerConfig config.DockerConfig) DebugCliOption {
 	return func(cli *DebugCli) error {
+		if cli.client != nil {
+			err := cli.client.Close()
+			if err != nil {
+				return errors.WithStack(err)
+			}
+		}
 		opts := []func(*client.Client) error{
 			client.WithHost(dockerConfig.Host),
 			client.WithVersion(""),
 		}
 		if dockerConfig.TLS {
 			opts = append(opts, client.WithTLSClientConfig(
-				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, os.PathSeparator, caKey),
-				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, os.PathSeparator, certKey),
-				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, os.PathSeparator, keyKey),
+				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, config.PathSeparator, caKey),
+				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, config.PathSeparator, certKey),
+				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, config.PathSeparator, keyKey),
 			))
 		}
 		dockerClient, err := client.NewClientWithOpts(opts...)
@@ -135,6 +140,13 @@ func WithClientName(name string) DebugCliOption {
 // UserAgent returns the user agent string used for making API requests
 func UserAgent() string {
 	return "Docker-Debug-Client/" + version.Version + " (" + runtime.GOOS + ")"
+}
+
+func (cli *DebugCli) Close() error {
+	if cli.client != nil {
+		return errors.WithStack(cli.client.Close())
+	}
+	return nil
 }
 
 // Client returns the APIClient
@@ -231,7 +243,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 	targetName := containerMode(attachContainer)
 
 	conf := &container.Config{
-		Entrypoint: strslice.StrSlice(cli.config.Command),
+		Entrypoint: strslice.StrSlice([]string{"/usr/bin/env", "sh"}),
 		Image:      cli.config.Image,
 		Tty:        true,
 		OpenStdin:  true,
@@ -259,23 +271,23 @@ func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 		body.ID,
 		types.ContainerStartOptions{},
 	)
-	return body.ID, err
+	return body.ID, errors.WithStack(err)
 }
 
 func (cli *DebugCli) ContainerClean(id string) error {
-	err := cli.client.ContainerStop(
+	//_ = cli.client.ContainerStop(
+	//	cli.withContent(time.Second * 2),
+	//	id,
+	//	&cli.config.Timeout,
+	//)
+
+	return errors.WithStack(cli.client.ContainerRemove(
 		cli.withContent(cli.config.Timeout),
 		id,
-		&cli.config.Timeout,
-	)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return cli.client.ContainerRemove(
-		cli.withContent(cli.config.Timeout),
-		id,
-		types.ContainerRemoveOptions{},
-	)
+		types.ContainerRemoveOptions{
+			Force: true,
+		},
+	))
 }
 
 func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.IDResponse, error) {
@@ -290,7 +302,8 @@ func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.ID
 		WorkingDir:   options.workdir,
 		Cmd:          options.command,
 	}
-	return cli.client.ContainerExecCreate(cli.withContent(cli.config.Timeout), container, opt)
+	resp, err := cli.client.ContainerExecCreate(cli.withContent(cli.config.Timeout), container, opt)
+	return resp, errors.WithStack(err)
 }
 
 func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
