@@ -10,4 +10,5 @@ require (
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/cobra v0.0.3
 	github.com/zeromake/moby v0.0.0-20190313134152-a3f0c0f1fa7d
+	golang.org/x/sys v0.0.0-20190204203706-41f3e6584952
 )

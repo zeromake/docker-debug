@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	IsWindows7 = false
 	// DefaultHTTPPort Default HTTP Port used if only the protocol is provided to -H flag e.g. dockerd -H tcp://
 	// These are the IANA registered port numbers for use with Docker
 	// see http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=docker
@@ -25,6 +26,12 @@ var (
 	// DefaultNamedPipe defines the default named pipe used by docker on Windows
 	DefaultNamedPipe = `//./pipe/docker_engine`
 )
+
+func restHost()  {
+	DefaultTCPHost = fmt.Sprintf("tcp://%s:%d", DefaultHTTPHost, DefaultHTTPPort)
+	// DefaultTLSHost constant defines the default host string used by docker for TLS sockets
+	DefaultTLSHost = fmt.Sprintf("tcp://%s:%d", DefaultHTTPHost, DefaultTLSHTTPPort)
+}
 
 // ValidateHost validates that the specified string is a valid host and returns it.
 func ValidateHost(val string) (string, error) {
@@ -45,7 +52,7 @@ func ValidateHost(val string) (string, error) {
 func ParseHost(defaultToTLS bool, val string) (string, error) {
 	host := strings.TrimSpace(val)
 	if host == "" {
-		if defaultToTLS {
+		if defaultToTLS || IsWindows7 {
 			host = DefaultTLSHost
 		} else {
 			host = DefaultHost

@@ -66,7 +66,8 @@ config_default = "default"
 ```
 
 ## Todo
-- [ ] support windows10 or windows7
+- [x] support windows7(Docker Toolbox)
+- [ ] support windows10
 - [ ] refactoring code
 - [ ] add testing
 - [x] add changelog

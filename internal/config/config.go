@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/pkg/errors"
-	"github.com/zeromake/moby/opts"
+	"github.com/zeromake/docker-debug/pkg/opts"
 	"os"
+	"strings"
 	"time"
-
 	"github.com/mitchellh/go-homedir"
 )
 
 var configDir = ".docker-debug"
 
 var configName = "config.toml"
+var HOME = "~"
 var PathSeparator = string(os.PathSeparator)
 
 // ConfigFile 默认配置文件
@@ -26,12 +27,15 @@ var ConfigFile = fmt.Sprintf(
 )
 
 func init() {
-	var err error
-	var home string
+	var (
+		home string
+		err error
+	)
 	home, err = homedir.Dir()
 	if err != nil {
 		return
 	}
+	HOME = home
 	configDir = fmt.Sprintf("%s%s%s", home, PathSeparator, configDir)
 	ConfigFile = fmt.Sprintf("%s%s%s", configDir, PathSeparator, configName)
 }
@@ -74,7 +78,7 @@ func LoadConfig() (*Config, error) {
 }
 
 func InitConfig() (*Config, error) {
-	host, err := opts.ParseHost(false, false, "")
+	host, err := opts.ParseHost(false, "")
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -83,6 +87,19 @@ func InitConfig() (*Config, error) {
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
+	}
+	dc := DockerConfig{
+		Host: host,
+	}
+	if opts.IsWindows7 {
+		paths := []string{
+			HOME,
+			".docker",
+			"machine",
+			"certs",
+		}
+		dc.TLS = true
+		dc.CertDir = strings.Join(paths, PathSeparator)
 	}
 	config := &Config{
 		Image: "nicolaka/netshoot:latest",
@@ -93,9 +110,7 @@ func InitConfig() (*Config, error) {
 		Timeout:             time.Second * 10,
 		DockerConfigDefault: "default",
 		DockerConfig: map[string]DockerConfig{
-			"default": DockerConfig{
-				Host: host,
-			},
+			"default": dc,
 		},
 	}
 	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR, 0644)
