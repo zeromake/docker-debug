@@ -38,19 +38,19 @@ func init() {
 
 // DockerConfig docker 配置
 type DockerConfig struct {
-	Host         string
-	TLS          bool
-	CertDir      string
-	CertPassword string
+	Host         string `toml:"host"`
+	TLS          bool `toml:"tls"`
+	CertDir      string `toml:"cert_dir"`
+	CertPassword string `toml:"cert_password"`
 }
 
 // Config 配置
 type Config struct {
-	Image               string
+	Image string `toml:"image"`
 	//Command             []string
-	Timeout             time.Duration
-	DockerConfigDefault string
-	DockerConfig        map[string]DockerConfig
+	Timeout             time.Duration           `toml:"timeout"`
+	DockerConfigDefault string                  `toml:"config_default"`
+	DockerConfig        map[string]DockerConfig `toml:"config"`
 }
 
 func pathExists(path string) bool {
@@ -85,11 +85,11 @@ func InitConfig() (*Config, error) {
 		}
 	}
 	config := &Config{
-		Image:               "nicolaka/netshoot:latest",
+		Image: "nicolaka/netshoot:latest",
 		//Command:             []string{
 		//	"sleep",
-		//	"24h",
-		//},
+		//	"24h",gaodingx_mysql_1
+		//},frapsoft/htop
 		Timeout:             time.Second * 10,
 		DockerConfigDefault: "default",
 		DockerConfig: map[string]DockerConfig{
@@ -98,7 +98,7 @@ func InitConfig() (*Config, error) {
 			},
 		},
 	}
-	file, err := os.OpenFile(ConfigFile, os.O_CREATE | os.O_RDWR, 0644)
+	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
