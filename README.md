@@ -1,4 +1,5 @@
 # Docker-debug
+*[English](README.md) ∙ [简体中文](README-zh-Hans.md)
 
 ## Overview
 
@@ -68,11 +69,11 @@ config_default = "default"
 - [ ] refactoring code
 - [ ] add testing
 - [x] add changelog
-- [ ] add README_CN.md
+- [x] add README_CN.md
 - [ ] add brew package
 
 ## Details
-1. find default `--image` flag is has, not has pull the image.
+1. find image docker is has, not has pull the image.
 2. find container name is has, not has return error.
 3. from customize image runs a new container in the container's namespaces (ipc, pid, network, etc, filesystem) with the STDIN stay open.
 4. create and run a exec on new container.
