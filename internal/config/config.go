@@ -3,12 +3,13 @@ package config
 import (
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/zeromake/docker-debug/pkg/opts"
+	"github.com/zeromake/docker-debug/version"
 	"os"
 	"strings"
 	"time"
-	"github.com/mitchellh/go-homedir"
 )
 
 var configDir = ".docker-debug"
@@ -29,7 +30,7 @@ var ConfigFile = fmt.Sprintf(
 func init() {
 	var (
 		home string
-		err error
+		err  error
 	)
 	home, err = homedir.Dir()
 	if err != nil {
@@ -43,21 +44,21 @@ func init() {
 // DockerConfig docker 配置
 type DockerConfig struct {
 	Host         string `toml:"host"`
-	TLS          bool `toml:"tls"`
+	TLS          bool   `toml:"tls"`
 	CertDir      string `toml:"cert_dir"`
 	CertPassword string `toml:"cert_password"`
 }
 
 // Config 配置
 type Config struct {
-	Image string `toml:"image"`
-	//Command             []string
+	Version             string                  `toml:"version"`
+	Image               string                  `toml:"image"`
 	Timeout             time.Duration           `toml:"timeout"`
 	DockerConfigDefault string                  `toml:"config_default"`
 	DockerConfig        map[string]DockerConfig `toml:"config"`
 }
 
-func pathExists(path string) bool {
+func PathExists(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true
@@ -69,7 +70,7 @@ func pathExists(path string) bool {
 }
 
 func LoadConfig() (*Config, error) {
-	if !pathExists(ConfigFile) {
+	if !PathExists(ConfigFile) {
 		return InitConfig()
 	}
 	config := &Config{}
@@ -82,7 +83,7 @@ func InitConfig() (*Config, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	if !pathExists(configDir) {
+	if !PathExists(configDir) {
 		err = os.Mkdir(configDir, 0755)
 		if err != nil {
 			return nil, errors.WithStack(err)
@@ -102,11 +103,8 @@ func InitConfig() (*Config, error) {
 		dc.CertDir = strings.Join(paths, PathSeparator)
 	}
 	config := &Config{
+		Version: version.Version,
 		Image: "nicolaka/netshoot:latest",
-		//Command:             []string{
-		//	"sleep",
-		//	"24h",gaodingx_mysql_1
-		//},frapsoft/htop
 		Timeout:             time.Second * 10,
 		DockerConfigDefault: "default",
 		DockerConfig: map[string]DockerConfig{

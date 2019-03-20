@@ -3,7 +3,7 @@ package command
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/zeromake/docker-debug/cmd/version"
+	"github.com/zeromake/docker-debug/version"
 )
 
 func init()  {

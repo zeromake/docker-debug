@@ -73,6 +73,7 @@ config_default = "default"
 - [x] add changelog
 - [x] add README_CN.md
 - [ ] add brew package
+- [ ] docker-debug version manage config file
 
 ## Details
 1. find image docker is has, not has pull the image.

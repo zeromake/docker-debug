@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/zeromake/docker-debug/internal/config"
 	"github.com/zeromake/docker-debug/pkg/tty"
+	"github.com/zeromake/docker-debug/pkg/opts"
 	"github.com/zeromake/moby/api/types"
 	"github.com/zeromake/moby/api/types/container"
 	"github.com/zeromake/moby/api/types/filters"
@@ -17,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zeromake/docker-debug/cmd/version"
+	"github.com/zeromake/docker-debug/version"
 	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/zeromake/moby/client"
 	"github.com/zeromake/moby/pkg/term"
@@ -110,18 +112,26 @@ func WithClientConfig(dockerConfig config.DockerConfig) DebugCliOption {
 				return errors.WithStack(err)
 			}
 		}
-		opts := []func(*client.Client) error{
-			client.WithHost(dockerConfig.Host),
+		var (
+			host string
+			err error
+		)
+		host, err = opts.ValidateHost(dockerConfig.Host)
+		if err != nil {
+			return err
+		}
+		clientOpts := []func(*client.Client) error {
+			client.WithHost(host),
 			client.WithVersion(""),
 		}
 		if dockerConfig.TLS {
-			opts = append(opts, client.WithTLSClientConfig(
+			clientOpts = append(clientOpts, client.WithTLSClientConfig(
 				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, config.PathSeparator, caKey),
 				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, config.PathSeparator, certKey),
 				fmt.Sprintf("%s%s%s", dockerConfig.CertDir, config.PathSeparator, keyKey),
 			))
 		}
-		dockerClient, err := client.NewClientWithOpts(opts...)
+		dockerClient, err := client.NewClientWithOpts(clientOpts...)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -189,7 +199,12 @@ func (cli *DebugCli) PullImage(image string) error {
 		return err
 	}
 
-	defer responseBody.Close()
+	defer func() {
+		err = responseBody.Close()
+		if err != nil {
+			logrus.Debugf("%+v", err)
+		}
+	}()
 	return jsonmessage.DisplayJSONMessagesToStream(responseBody, cli.out, nil)
 }
 

@@ -2,6 +2,7 @@ package opts
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"net"
 	"net/url"
 	"strconv"
@@ -87,7 +88,7 @@ func parseDockerDaemonHost(addr string) (string, error) {
 	case "ssh":
 		return addr, nil
 	default:
-		return "", fmt.Errorf("Invalid bind address format: %s", addr)
+		return "", errors.Errorf("Invalid bind address format: %s", addr)
 	}
 }
 
@@ -98,7 +99,7 @@ func parseDockerDaemonHost(addr string) (string, error) {
 func parseSimpleProtoAddr(proto, addr, defaultAddr string) (string, error) {
 	addr = strings.TrimPrefix(addr, proto+"://")
 	if strings.Contains(addr, "://") {
-		return "", fmt.Errorf("Invalid proto, expected %s: %s", proto, addr)
+		return "", errors.Errorf("Invalid proto, expected %s: %s", proto, addr)
 	}
 	if addr == "" {
 		addr = defaultAddr
@@ -117,13 +118,13 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 	}
 	addr := strings.TrimPrefix(tryAddr, "tcp://")
 	if strings.Contains(addr, "://") || addr == "" {
-		return "", fmt.Errorf("Invalid proto, expected tcp: %s", tryAddr)
+		return "", errors.Errorf("Invalid proto, expected tcp: %s", tryAddr)
 	}
 
 	defaultAddr = strings.TrimPrefix(defaultAddr, "tcp://")
 	defaultHost, defaultPort, err := net.SplitHostPort(defaultAddr)
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 	// url.Parse fails for trailing colon on IPv6 brackets on Go 1.5, but
 	// not 1.4. See https://github.com/golang/go/issues/12200 and
@@ -134,7 +135,7 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 
 	u, err := url.Parse("tcp://" + addr)
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 	host, port, err := net.SplitHostPort(u.Host)
 	if err != nil {
@@ -153,7 +154,7 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 	}
 	p, err := strconv.Atoi(port)
 	if err != nil && p == 0 {
-		return "", fmt.Errorf("Invalid bind address format: %s", tryAddr)
+		return "", errors.Errorf("Invalid bind address format: %s", tryAddr)
 	}
 
 	return fmt.Sprintf("tcp://%s%s", net.JoinHostPort(host, port), u.Path), nil

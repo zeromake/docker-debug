@@ -19,6 +19,7 @@ type execOptions struct {
 	privileged  bool
 	workdir     string
 	container   string
+	certDir string
 	command     []string
 }
 
@@ -43,18 +44,19 @@ func newExecCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.StringVarP(&options.image, "image", "", "", "use this image")
-	flags.StringVarP(&options.host, "host", "", "", "conn this host's docker (format: tcp://192.168.99.100:2376)")
-	flags.StringVarP(&options.detachKeys, "detach-keys", "", "", "Override the key sequence for detaching a container")
+	flags.StringVarP(&options.image, "image", "i", "", "use this image")
+	flags.StringVarP(&options.host, "host", "H", "", "connection host's docker (format: tcp://192.168.99.100:2376)")
+	flags.StringVarP(&options.certDir, "cert-dir", "c", "", "cert dir use tls")
+	flags.StringVarP(&options.detachKeys, "detach-keys", "d", "", "Override the key sequence for detaching a container")
 	flags.StringVarP(&options.user, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
-	flags.BoolVarP(&options.privileged, "privileged", "", false, "Give extended privileges to the command")
+	flags.BoolVarP(&options.privileged, "privileged", "p", false, "Give extended privileges to the command")
 	flags.StringVarP(&options.workdir, "workdir", "w", "", "Working directory inside the container")
 	_ = flags.SetAnnotation("workdir", "version", []string{"1.35"})
 	return cmd
 }
 
 func runExec(options execOptions) error {
-	//logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetLevel(logrus.ErrorLevel)
 	var containerId string
 	conf, err := config.LoadConfig()
 	opts := []DebugCliOption{
@@ -66,6 +68,10 @@ func runExec(options execOptions) error {
 	if options.host != "" {
 		dockerConfig := config.DockerConfig{
 			Host: options.host,
+		}
+		if options.certDir != "" {
+			dockerConfig.TLS = true
+			dockerConfig.CertDir = options.certDir
 		}
 		opts = append(opts, WithClientConfig(dockerConfig))
 	} else {
