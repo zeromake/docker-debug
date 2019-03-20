@@ -10,7 +10,7 @@ The new container will join the `pid`, `network`, `user`, `filesystem` and `ipc`
 so you can use arbitrary trouble-shooting tools without pre-installing them in your production container image.
 
 ## Demo
-[![asciicast](https://asciinema.org/a/234638.svg)](https://asciinema.org/a/234638)
+[![asciicast](https://asciinema.org/a/235025.svg)](https://asciinema.org/a/235025)
 ## Quick Start
 
 Install the `docker-debug` cli

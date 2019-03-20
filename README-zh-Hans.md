@@ -9,7 +9,7 @@
 因此，您可以使用任意故障排除工具，而无需在生产容器镜像中预先安装额外的工具环境。
 
 ## Demo
-[![asciicast](https://asciinema.org/a/234638.svg)](https://asciinema.org/a/234638)
+[![asciicast](https://asciinema.org/a/235025.svg)](https://asciinema.org/a/235025)
 ## Quick Start
 
 安装 `docker-debug` 命令行工具
