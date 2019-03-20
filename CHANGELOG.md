@@ -2,6 +2,18 @@
 ## [Unreleased]
 
 
+<a name="v0.2.0"></a>
+## [v0.2.0] - 2019-03-20
+### Docs
+- update readme
+- init changelog
+
+### Feat
+- command add more
+- add support windows7
+- add readme zh-hans
+
+
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2019-03-19
 ### Feat
@@ -30,4 +42,5 @@
 - ignore add more
 
 
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/zeromake/docker-debug/compare/v0.1.0...v0.2.0
