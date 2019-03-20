@@ -74,6 +74,7 @@ config_default = "default"
 - [x] add README_CN.md
 - [ ] add brew package
 - [ ] docker-debug version manage config file
+- [ ] cli command set mount target container filesystem
 
 ## Details
 1. find image docker is has, not has pull the image.
