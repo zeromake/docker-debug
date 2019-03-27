@@ -2,6 +2,20 @@
 ## [Unreleased]
 
 
+<a name="v0.2.1"></a>
+## [v0.2.1] - 2019-03-27
+### Docs
+- update readme download url version
+- update changelog v0.2.0
+
+### Feat
+- update asciinema demo
+
+### Fix
+- add version semver migration
+- add readme todo
+
+
 <a name="v0.2.0"></a>
 ## [v0.2.0] - 2019-03-20
 ### Docs
@@ -42,5 +56,6 @@
 - ignore add more
 
 
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/zeromake/docker-debug/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/zeromake/docker-debug/compare/v0.1.0...v0.2.0
