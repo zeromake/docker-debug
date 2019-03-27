@@ -13,6 +13,14 @@
 ## Quick Start
 
 安装 `docker-debug` 命令行工具
+
+**mac brew**
+```shell
+brew tap zeromake/docker-debug
+brew install docker-debug
+```
+
+**下载二进制文件**
 ``` shell
 # MacOS
 curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.1/docker-debug-darwin-amd64

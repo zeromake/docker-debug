@@ -14,6 +14,14 @@ so you can use arbitrary trouble-shooting tools without pre-installing them in y
 ## Quick Start
 
 Install the `docker-debug` cli
+
+**mac brew**
+```shell
+brew tap zeromake/docker-debug
+brew install docker-debug
+```
+
+**download binary file**
 ``` shell
 # MacOS
 curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.1/docker-debug-darwin-amd64
@@ -74,7 +82,7 @@ config_default = "default"
 - [ ] add testing
 - [x] add changelog
 - [x] add README_CN.md
-- [ ] add brew package
+- [x] add brew package
 - [x] docker-debug version manage config file
 - [x] cli command set mount target container filesystem
 
