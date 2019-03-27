@@ -5,7 +5,7 @@ import (
 	"github.com/zeromake/docker-debug/internal/config"
 )
 
-func init()  {
+func init() {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "docker-debug init config",

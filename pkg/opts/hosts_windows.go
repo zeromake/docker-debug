@@ -12,7 +12,7 @@ import (
 var DefaultHost = "npipe://" + DefaultNamedPipe
 var DefaultHTTPHost = "127.0.0.1"
 
-func init()  {
+func init() {
 	var key, err = registry.OpenKey(registry.LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", registry.QUERY_VALUE)
 	if err != nil {
 		return
@@ -28,4 +28,3 @@ func init()  {
 		restHost()
 	}
 }
-

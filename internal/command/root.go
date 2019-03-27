@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/zeromake/docker-debug/internal/config"
@@ -12,15 +13,16 @@ import (
 var rootCmd = newExecCommand()
 
 type execOptions struct {
-	host 		string
-	image       string
-	detachKeys  string
-	user        string
-	privileged  bool
-	workdir     string
-	container   string
-	certDir string
-	command     []string
+	host       string
+	image      string
+	detachKeys string
+	user       string
+	privileged bool
+	workDir    string
+	targetDir  string
+	container  string
+	certDir    string
+	command    []string
 }
 
 func newExecOptions() execOptions {
@@ -50,8 +52,9 @@ func newExecCommand() *cobra.Command {
 	flags.StringVarP(&options.detachKeys, "detach-keys", "d", "", "Override the key sequence for detaching a container")
 	flags.StringVarP(&options.user, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
 	flags.BoolVarP(&options.privileged, "privileged", "p", false, "Give extended privileges to the command")
-	flags.StringVarP(&options.workdir, "workdir", "w", "", "Working directory inside the container")
-	_ = flags.SetAnnotation("workdir", "version", []string{"1.35"})
+	flags.StringVarP(&options.workDir, "work-dir", "w", "", "Working directory inside the container")
+	_ = flags.SetAnnotation("work-dir", "version", []string{"1.35"})
+	flags.StringVarP(&options.targetDir, "target-dir", "t", "", "Working directory inside the container")
 	return cmd
 }
 
@@ -64,6 +67,9 @@ func runExec(options execOptions) error {
 	}
 	if options.image != "" {
 		conf.Image = options.image
+	}
+	if conf.Image == "" {
+		return errors.New("not set image!")
 	}
 	if options.host != "" {
 		dockerConfig := config.DockerConfig{
@@ -150,4 +156,3 @@ func Execute() {
 		logrus.Debugf("%+v", err)
 	}
 }
-

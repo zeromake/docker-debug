@@ -13,6 +13,8 @@ github.com/armon/go-metrics v0.0.0-20150106224455-eb0af217e5e9/go.mod h1:Q73ZrmV
 github.com/armon/go-radix v0.0.0-20150105235045-e39d623f12e8/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/aws/aws-sdk-go v1.12.66/go.mod h1:ZRmQr0FajVIyZ4ZzBYKG5P3ZqPz9IHG41ZoMu1ADI3k=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
+github.com/blang/semver v3.5.1+incompatible h1:cQNTCjp13qL8KC3Nbxr/y2Bqb63oX6wdnnjpJbkM4JQ=
+github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/bsphere/le_go v0.0.0-20170215134836-7a984a84b549/go.mod h1:313oBJKClgRD/+t59eUnrfG7/xHXZJd7v+SjCacDm4Q=
 github.com/cloudflare/cfssl v0.0.0-20180323000720-5d63dbd981b5/go.mod h1:yMWuSON2oQp+43nFtAV/uvKQIFpSPerB57DCt9t8sSA=
 github.com/containerd/cgroups v0.0.0-20180515175038-5e610833b720/go.mod h1:X9rLEHIqSf/wfK8NsPqxJmeZgW4pcfzdXITDrUSJ6uI=

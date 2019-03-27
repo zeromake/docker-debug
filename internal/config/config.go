@@ -52,10 +52,27 @@ type DockerConfig struct {
 // Config 配置
 type Config struct {
 	Version             string                  `toml:"version"`
+	MountDir            string                  `toml:"mount_dir"`
 	Image               string                  `toml:"image"`
 	Timeout             time.Duration           `toml:"timeout"`
 	DockerConfigDefault string                  `toml:"config_default"`
 	DockerConfig        map[string]DockerConfig `toml:"config"`
+}
+
+func (c *Config) Save() error {
+	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	encoder := toml.NewEncoder(file)
+	defer func() {
+		_ = file.Close()
+	}()
+	return encoder.Encode(c)
+}
+func (c *Config) Load() error {
+	_, err := toml.DecodeFile(ConfigFile, c)
+	return errors.WithStack(err)
 }
 
 func PathExists(path string) bool {
@@ -75,7 +92,11 @@ func LoadConfig() (*Config, error) {
 	}
 	config := &Config{}
 	_, err := toml.DecodeFile(ConfigFile, config)
-	return config, errors.WithStack(err)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	err = MigrationConfig(config)
+	return config, err
 }
 
 func InitConfig() (*Config, error) {
@@ -103,9 +124,10 @@ func InitConfig() (*Config, error) {
 		dc.CertDir = strings.Join(paths, PathSeparator)
 	}
 	config := &Config{
-		Version: version.Version,
-		Image: "nicolaka/netshoot:latest",
+		Version:             version.Version,
+		Image:               "nicolaka/netshoot:latest",
 		Timeout:             time.Second * 10,
+		MountDir:            "/mnt/container",
 		DockerConfigDefault: "default",
 		DockerConfig: map[string]DockerConfig{
 			"default": dc,

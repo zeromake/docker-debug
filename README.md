@@ -16,10 +16,10 @@ so you can use arbitrary trouble-shooting tools without pre-installing them in y
 Install the `docker-debug` cli
 ``` shell
 # MacOS
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.0/docker-debug-darwin-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.1/docker-debug-darwin-amd64
 
 # Linux
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.0/docker-debug-linux-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.1/docker-debug-linux-amd64
 
 chmod +x ./docker-debug
 sudo mv docker-debug /usr/local/bin/
@@ -53,7 +53,9 @@ mv docker-debug /usr/local/bin
 docker-debug uses nicolaka/netshoot as the default image to run debug container.
 You can override the default image with cli flag, or even better, with config file ~/.docker-debug/config.toml
 ``` toml
+version = "0.2.1"
 image = "nicolaka/netshoot:latest"
+mount_dir = "/mnt/container"
 timeout = 10000000000
 config_default = "default"
 
@@ -73,8 +75,8 @@ config_default = "default"
 - [x] add changelog
 - [x] add README_CN.md
 - [ ] add brew package
-- [ ] docker-debug version manage config file
-- [ ] cli command set mount target container filesystem
+- [x] docker-debug version manage config file
+- [x] cli command set mount target container filesystem
 
 ## Details
 1. find image docker is has, not has pull the image.

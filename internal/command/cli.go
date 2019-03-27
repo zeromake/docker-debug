@@ -6,8 +6,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/zeromake/docker-debug/internal/config"
-	"github.com/zeromake/docker-debug/pkg/tty"
 	"github.com/zeromake/docker-debug/pkg/opts"
+	"github.com/zeromake/docker-debug/pkg/tty"
 	"github.com/zeromake/moby/api/types"
 	"github.com/zeromake/moby/api/types/container"
 	"github.com/zeromake/moby/api/types/filters"
@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zeromake/docker-debug/version"
 	"github.com/zeromake/docker-debug/pkg/stream"
+	"github.com/zeromake/docker-debug/version"
 	"github.com/zeromake/moby/client"
 	"github.com/zeromake/moby/pkg/term"
 )
@@ -114,13 +114,13 @@ func WithClientConfig(dockerConfig config.DockerConfig) DebugCliOption {
 		}
 		var (
 			host string
-			err error
+			err  error
 		)
 		host, err = opts.ValidateHost(dockerConfig.Host)
 		if err != nil {
 			return err
 		}
-		clientOpts := []func(*client.Client) error {
+		clientOpts := []func(*client.Client) error{
 			client.WithHost(host),
 			client.WithVersion(""),
 		}
@@ -230,29 +230,32 @@ func containerMode(name string) string {
 }
 
 func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
-	info, err := cli.client.ContainerInspect(cli.withContent(cli.config.Timeout), attachContainer)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	mountDir, ok := info.GraphDriver.Data["MergedDir"]
-	mounts := []mount.Mount{}
-	if ok {
-		mounts = append(mounts, mount.Mount{
-			Type:   "bind",
-			Source: mountDir,
-			Target: "/mnt/container",
-		})
-	}
-	for _, i := range info.Mounts {
-		if i.Type == "volume" {
-			continue
+	var mounts []mount.Mount = nil
+	if cli.config.MountDir != "" {
+		info, err := cli.client.ContainerInspect(cli.withContent(cli.config.Timeout), attachContainer)
+		if err != nil {
+			return "", errors.WithStack(err)
 		}
-		mounts = append(mounts, mount.Mount{
-			Type:     i.Type,
-			Source:   i.Source,
-			Target:   "/mnt/container" + i.Destination,
-			ReadOnly: !i.RW,
-		})
+		mountDir, ok := info.GraphDriver.Data["MergedDir"]
+		mounts = []mount.Mount{}
+		if ok {
+			mounts = append(mounts, mount.Mount{
+				Type:   "bind",
+				Source: mountDir,
+				Target: cli.config.MountDir,
+			})
+		}
+		for _, i := range info.Mounts {
+			if i.Type == "volume" {
+				continue
+			}
+			mounts = append(mounts, mount.Mount{
+				Type:     i.Type,
+				Source:   i.Source,
+				Target:   cli.config.MountDir + i.Destination,
+				ReadOnly: !i.RW,
+			})
+		}
 	}
 
 	targetName := containerMode(attachContainer)
@@ -290,12 +293,6 @@ func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 }
 
 func (cli *DebugCli) ContainerClean(id string) error {
-	//_ = cli.client.ContainerStop(
-	//	cli.withContent(time.Second * 2),
-	//	id,
-	//	&cli.config.Timeout,
-	//)
-
 	return errors.WithStack(cli.client.ContainerRemove(
 		cli.withContent(cli.config.Timeout),
 		id,
@@ -306,6 +303,14 @@ func (cli *DebugCli) ContainerClean(id string) error {
 }
 
 func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.IDResponse, error) {
+	var workDir = options.workDir
+	if workDir == "" && cli.config.MountDir != "" {
+		if strings.HasPrefix(options.targetDir, "/") {
+			workDir = cli.config.MountDir + options.targetDir
+		} else {
+			workDir = cli.config.MountDir + "/" + options.targetDir
+		}
+	}
 	opt := types.ExecConfig{
 		User:         options.user,
 		Privileged:   options.privileged,
@@ -314,7 +319,7 @@ func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.ID
 		AttachStderr: true,
 		AttachStdin:  true,
 		AttachStdout: true,
-		WorkingDir:   options.workdir,
+		WorkingDir:   workDir,
 		Cmd:          options.command,
 	}
 	resp, err := cli.client.ContainerExecCreate(cli.withContent(cli.config.Timeout), container, opt)
@@ -323,7 +328,7 @@ func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.ID
 
 func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 	execConfig := types.ExecStartCheck{
-		Tty:          true,
+		Tty: true,
 	}
 
 	response, err := cli.client.ContainerExecAttach(cli.withContent(cli.config.Timeout), execID, execConfig)
@@ -338,7 +343,7 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 		Resp:         response,
 		TTY:          true,
 	}
-	return streamer.Stream(context.Background());
+	return streamer.Stream(context.Background())
 }
 
 func (cli *DebugCli) FindContainer(name string) (string, error) {
@@ -359,7 +364,7 @@ func (cli *DebugCli) FindContainer(name string) (string, error) {
 	}
 	var containerNames = []string{}
 	for _, c := range list {
-		containerNames = append(containerNames, strings.Join(c.Names, "-"))
+		containerNames = append(containerNames, strings.Join(c.Names, "/"))
 	}
 	return "", errors.Errorf("ContainerList:\n%s\n", strings.Join(containerNames, "\n"))
 }

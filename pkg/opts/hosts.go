@@ -28,7 +28,7 @@ var (
 	DefaultNamedPipe = `//./pipe/docker_engine`
 )
 
-func restHost()  {
+func restHost() {
 	DefaultTCPHost = fmt.Sprintf("tcp://%s:%d", DefaultHTTPHost, DefaultHTTPPort)
 	// DefaultTLSHost constant defines the default host string used by docker for TLS sockets
 	DefaultTLSHost = fmt.Sprintf("tcp://%s:%d", DefaultHTTPHost, DefaultTLSHTTPPort)

@@ -6,7 +6,7 @@ import (
 	"github.com/zeromake/docker-debug/version"
 )
 
-func init()  {
+func init() {
 	cmd := &cobra.Command{
 		Use:   "info",
 		Short: "docker and client info",
