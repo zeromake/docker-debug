@@ -25,7 +25,7 @@ chmod +x ./docker-debug
 sudo mv docker-debug /usr/local/bin/
 
 # Windows
-curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/v0.2.0/docker-debug-windows-amd64.exe
+curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/v0.2.1/docker-debug-windows-amd64.exe
 ```
 
 download the latest binary from the [release page](https://github.com/zeromake/docker-debug/releases/lastest) and add it to your PATH.
