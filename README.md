@@ -85,7 +85,7 @@ config_default = "default"
 - [x] add brew package
 - [x] docker-debug version manage config file
 - [x] cli command set mount target container filesystem
-- [ ] mount volume filesystem
+- [x] mount volume filesystem
 - [ ] cli command document on readme
 - [ ] config file document on readme
 - [ ] add http api and web shell

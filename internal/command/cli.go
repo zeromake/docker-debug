@@ -246,11 +246,12 @@ func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 			})
 		}
 		for _, i := range info.Mounts {
+			var mountType = i.Type
 			if i.Type == "volume" {
-				continue
+				mountType = "bind"
 			}
 			mounts = append(mounts, mount.Mount{
-				Type:     i.Type,
+				Type:     mountType,
 				Source:   i.Source,
 				Target:   cli.config.MountDir + i.Destination,
 				ReadOnly: !i.RW,
@@ -273,6 +274,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 		IpcMode:     container.IpcMode(targetName),
 		PidMode:     container.PidMode(targetName),
 		Mounts:      mounts,
+		//VolumesFrom: []string{attachContainer},
 	}
 	body, err := cli.client.ContainerCreate(
 		cli.withContent(cli.config.Timeout),
