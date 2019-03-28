@@ -7,15 +7,16 @@ import (
 	"strings"
 )
 
-type Migration struct {
+type migration struct {
 	Up      func(*Config) error
 	Version semver.Version
 }
 
-var migrationArr = []*Migration{}
+var migrationArr = []*migration{}
 
 func MigrationConfig(conf *Config) error {
 	ver1 := version.Version
+	var flag bool
 	if strings.HasPrefix(ver1, "v") {
 		ver1 = ver1[1:]
 	}
@@ -31,6 +32,11 @@ func MigrationConfig(conf *Config) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
+	if strings.HasSuffix(conf.MountDir, "/") {
+		flag = true
+		l := len(conf.MountDir)
+		conf.MountDir = conf.MountDir[:l - 1]
+	}
 	if v2.LT(v1) {
 		for _, m := range migrationArr {
 			if v2.LT(m.Version) {
@@ -41,6 +47,9 @@ func MigrationConfig(conf *Config) error {
 			}
 		}
 		conf.Version = ver1
+		return conf.Save()
+	}
+	if flag {
 		return conf.Save()
 	}
 	return nil

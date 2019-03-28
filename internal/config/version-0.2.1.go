@@ -16,7 +16,7 @@ func init() {
 	if err != nil {
 		return
 	}
-	migrationArr = append(migrationArr, &Migration{
+	migrationArr = append(migrationArr, &migration{
 		Up:      Up000201,
 		Version: v,
 	})
