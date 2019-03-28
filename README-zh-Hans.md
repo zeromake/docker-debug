@@ -23,16 +23,16 @@ brew install docker-debug
 **下载二进制文件**
 ``` shell
 # MacOS
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.1/docker-debug-darwin-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.2/docker-debug-darwin-amd64
 
 # Linux
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.1/docker-debug-linux-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.2.2/docker-debug-linux-amd64
 
 chmod +x ./docker-debug
 sudo mv docker-debug /usr/local/bin/
 
 # Windows
-curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/v0.2.1/docker-debug-windows-amd64.exe
+curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/v0.2.2/docker-debug-windows-amd64.exe
 ```
 
 或者到 [release page](https://github.com/zeromake/docker-debug/releases/lastest) 下载最新可执行文件并添加到 PATH。

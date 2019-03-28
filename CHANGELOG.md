@@ -2,6 +2,20 @@
 ## [Unreleased]
 
 
+<a name="v0.2.2"></a>
+## [v0.2.2] - 2019-03-28
+### Docs
+- update todo list
+- update v0.2.1
+
+### Feat
+- add brew pkg install on readme
+
+### Fix
+- mount dir del suffix
+- readme download url version set lastest
+
+
 <a name="v0.2.1"></a>
 ## [v0.2.1] - 2019-03-27
 ### Docs
@@ -56,6 +70,7 @@
 - ignore add more
 
 
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.2.2...HEAD
+[v0.2.2]: https://github.com/zeromake/docker-debug/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/zeromake/docker-debug/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/zeromake/docker-debug/compare/v0.1.0...v0.2.0
