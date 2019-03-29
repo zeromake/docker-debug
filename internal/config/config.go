@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/mitchellh/go-homedir"
@@ -49,6 +50,11 @@ type DockerConfig struct {
 	CertPassword string `toml:"cert_password"`
 }
 
+func (c DockerConfig) String() string {
+	s, _ := json.MarshalIndent(&c, "", "  ")
+	return string(s)
+}
+
 // Config 配置
 type Config struct {
 	Version             string                  `toml:"version"`
@@ -60,7 +66,7 @@ type Config struct {
 }
 
 func (c *Config) Save() error {
-	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR, 0644)
+	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -133,7 +139,7 @@ func InitConfig() (*Config, error) {
 			"default": dc,
 		},
 	}
-	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR, 0644)
+	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
