@@ -23,6 +23,7 @@ type execOptions struct {
 	container  string
 	certDir    string
 	command    []string
+	name string
 }
 
 func newExecOptions() execOptions {
@@ -47,6 +48,7 @@ func newExecCommand() *cobra.Command {
 	flags.SetInterspersed(false)
 
 	flags.StringVarP(&options.image, "image", "i", "", "use this image")
+	flags.StringVarP(&options.name, "name", "n", "", "docker config name")
 	flags.StringVarP(&options.host, "host", "H", "", "connection host's docker (format: tcp://192.168.99.100:2376)")
 	flags.StringVarP(&options.certDir, "cert-dir", "c", "", "cert dir use tls")
 	flags.StringVarP(&options.detachKeys, "detach-keys", "d", "", "Override the key sequence for detaching a container")
@@ -81,7 +83,16 @@ func runExec(options execOptions) error {
 		}
 		opts = append(opts, WithClientConfig(dockerConfig))
 	} else {
-		opts = append(opts, WithClientName(conf.DockerConfigDefault))
+		name := conf.DockerConfigDefault
+		opt, ok := conf.DockerConfig[conf.DockerConfigDefault]
+		if options.name != "" {
+			name = options.name
+			opt, ok = conf.DockerConfig[options.name]
+		}
+		if !ok {
+			return errors.Errorf("not find %s docker config", name)
+		}
+		opts = append(opts, WithClientConfig(opt))
 	}
 
 	cli, err := NewDebugCli(opts...)

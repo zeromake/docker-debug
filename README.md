@@ -86,6 +86,7 @@ config_default = "default"
 - [x] docker-debug version manage config file
 - [x] cli command set mount target container filesystem
 - [x] mount volume filesystem
+- [x] docker connection config on cli command
 - [ ] cli command document on readme
 - [ ] config file document on readme
 - [ ] add http api and web shell
