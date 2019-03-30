@@ -29,6 +29,10 @@ const (
 	caKey   = "ca.pem"
 	certKey = "cert.pem"
 	keyKey  = "key.pem"
+
+	legacyDefaultDomain = "index.docker.io"
+	defaultDomain       = "docker.io"
+	officialRepoName    = "library"
 )
 
 type DebugCliOption func(cli *DebugCli) error
@@ -188,15 +192,32 @@ func (cli *DebugCli) Config() *config.Config {
 	return cli.config
 }
 
-func (cli *DebugCli) PullImage(image string) error {
-	var name = image
-	temps := strings.SplitN(name, "/", 1)
-	if strings.IndexRune(temps[0], '.') == -1 {
-		name = "docker.io/" + image
+// splitDockerDomain splits a repository name to domain and remotename string.
+// If no valid domain is found, the default domain is used. Repository name
+// needs to be already validated before.
+func splitDockerDomain(name string) (domain, remainder string) {
+	i := strings.IndexRune(name, '/')
+	if i == -1 || (!strings.ContainsAny(name[:i], ".:") && name[:i] != "localhost") {
+		domain, remainder = defaultDomain, name
+	} else {
+		domain, remainder = name[:i], name[i+1:]
 	}
-	responseBody, err := cli.client.ImagePull(cli.withContent(cli.config.Timeout*30), name, types.ImagePullOptions{})
+	if domain == legacyDefaultDomain {
+		domain = defaultDomain
+	}
+	if domain == defaultDomain && !strings.ContainsRune(remainder, '/') {
+		remainder = officialRepoName + "/" + remainder
+	}
+	return
+}
+
+func (cli *DebugCli) PullImage(image string) error {
+	domain, remainder := splitDockerDomain(image)
+	imageName := domain + "/" + remainder
+
+	responseBody, err := cli.client.ImagePull(cli.withContent(cli.config.Timeout*30), imageName, types.ImagePullOptions{})
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	defer func() {
