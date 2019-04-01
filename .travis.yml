@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - 1.x
+
+env:
+  global:
+    - REVIEWDOG_VERSION="0.9.11"
+
+install:
+  - mkdir -p ~/bin/ && export export PATH="~/bin/:$PATH"
+  - curl -fSL https://github.com/reviewdog/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_linux_amd64 -o ~/bin/reviewdog && chmod +x ~/bin/reviewdog
+
+script:
+  - reviewdog -conf=.reviewdog.yml -reporter=github-pr-check
