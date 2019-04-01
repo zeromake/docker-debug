@@ -2,13 +2,31 @@
 ## [Unreleased]
 
 
+<a name="v0.5.0"></a>
+## [v0.5.0] - 2019-04-01
+### Docs
+- update readme
+- update readme changelog
+
+### Feat
+- default config from env
+
+### Fix
+- image split domain
+
+### Test
+- travis add script test
+- add travis ci
+- add reviewdog ci
+
+
 <a name="v0.4.0"></a>
 ## [v0.4.0] - 2019-03-29
 ### Docs
 - update changelog
 
 ### Feat
-- add command `config`, `use`
+- add command ,
 
 ### Fix
 - docker config string format and write flag lost
@@ -92,7 +110,8 @@
 - ignore add more
 
 
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.5.0...HEAD
+[v0.5.0]: https://github.com/zeromake/docker-debug/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/zeromake/docker-debug/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/zeromake/docker-debug/compare/v0.2.2...v0.3.0
 [v0.2.2]: https://github.com/zeromake/docker-debug/compare/v0.2.1...v0.2.2
