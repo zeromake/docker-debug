@@ -161,7 +161,7 @@ func runExec(options execOptions) error {
 	}
 	return nil
 }
-
+// Execute main func
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		logrus.Debugf("%+v", err)

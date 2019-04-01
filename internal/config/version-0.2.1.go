@@ -4,6 +4,7 @@ import (
 	"github.com/blang/semver"
 )
 
+// Up000201 update version 0.2.1
 func Up000201(conf *Config) error {
 	if conf.MountDir == "" {
 		conf.MountDir = "/mnt/container"

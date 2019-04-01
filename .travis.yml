@@ -12,4 +12,5 @@ install:
   - curl -fSL https://github.com/reviewdog/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_linux_amd64 -o ~/bin/reviewdog && chmod +x ~/bin/reviewdog
 
 script:
+  - go test ./...
   - reviewdog -conf=.reviewdog.yml -reporter=github-pr-check

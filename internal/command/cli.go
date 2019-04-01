@@ -57,7 +57,7 @@ type DebugCli struct {
 	client client.APIClient
 	config *config.Config
 }
-
+// NewDebugCli new DebugCli
 func NewDebugCli(ops ...DebugCliOption) (*DebugCli, error) {
 	cli := &DebugCli{}
 	if err := cli.Apply(ops...); err != nil {
@@ -78,9 +78,6 @@ func NewDebugCli(ops ...DebugCliOption) (*DebugCli, error) {
 	return cli, nil
 }
 
-func NewDefaultDebugCli() (*DebugCli, error) {
-	return NewDebugCli(WithConfigFile(), WithClientName("default"))
-}
 
 // Apply all the operation on the cli
 func (cli *DebugCli) Apply(ops ...DebugCliOption) error {
@@ -92,17 +89,7 @@ func (cli *DebugCli) Apply(ops ...DebugCliOption) error {
 	return nil
 }
 
-func WithConfigFile() DebugCliOption {
-	return func(cli *DebugCli) error {
-		conf, err := config.LoadConfig()
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		cli.config = conf
-		return nil
-	}
-}
-
+// WithConfig set config
 func WithConfig(config *config.Config) DebugCliOption {
 	return func(cli *DebugCli) error {
 		cli.config = config
@@ -110,6 +97,7 @@ func WithConfig(config *config.Config) DebugCliOption {
 	}
 }
 
+// WithClientConfig set docker config
 func WithClientConfig(dockerConfig config.DockerConfig) DebugCliOption {
 	return func(cli *DebugCli) error {
 		if cli.client != nil {
@@ -146,18 +134,12 @@ func WithClientConfig(dockerConfig config.DockerConfig) DebugCliOption {
 	}
 }
 
-func WithClientName(name string) DebugCliOption {
-	return func(cli *DebugCli) error {
-		dockerConfig := cli.config.DockerConfig[name]
-		return WithClientConfig(dockerConfig)(cli)
-	}
-}
-
 // UserAgent returns the user agent string used for making API requests
 func UserAgent() string {
 	return "Docker-Debug-Client/" + version.Version + " (" + runtime.GOOS + ")"
 }
 
+// Close cli close
 func (cli *DebugCli) Close() error {
 	if cli.client != nil {
 		return errors.WithStack(cli.client.Close())
@@ -190,6 +172,7 @@ func (cli *DebugCli) In() *stream.InStream {
 	return cli.in
 }
 
+// Config config
 func (cli *DebugCli) Config() *config.Config {
 	return cli.config
 }
@@ -213,6 +196,7 @@ func splitDockerDomain(name string) (domain, remainder string) {
 	return
 }
 
+// PullImage pull docker image
 func (cli *DebugCli) PullImage(image string) error {
 	domain, remainder := splitDockerDomain(image)
 	imageName := domain + "/" + remainder
@@ -233,6 +217,7 @@ func (cli *DebugCli) PullImage(image string) error {
 	return jsonmessage.DisplayJSONMessagesToStream(responseBody, cli.out, nil)
 }
 
+// FindImage find image
 func (cli *DebugCli) FindImage(image string) ([]types.ImageSummary, error) {
 	args := filters.NewArgs()
 	args.Add("reference", image)
@@ -243,6 +228,7 @@ func (cli *DebugCli) FindImage(image string) ([]types.ImageSummary, error) {
 	})
 }
 
+// Ping ping docker
 func (cli *DebugCli) Ping() (types.Ping, error) {
 	ctx, cancel := cli.withContent(cli.config.Timeout)
 	defer cancel()
@@ -257,6 +243,7 @@ func containerMode(name string) string {
 	return fmt.Sprintf("container:%s", name)
 }
 
+// CreateContainer create new container and attach target container resource
 func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 	var mounts []mount.Mount
 	if cli.config.MountDir != "" {
@@ -328,6 +315,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 	return body.ID, errors.WithStack(err)
 }
 
+// ContainerClean stop and remove container
 func (cli *DebugCli) ContainerClean(id string) error {
 	ctx, cancel := cli.withContent(cli.config.Timeout)
 	defer cancel()
@@ -340,6 +328,7 @@ func (cli *DebugCli) ContainerClean(id string) error {
 	))
 }
 
+// ExecCreate exec create
 func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.IDResponse, error) {
 	var workDir = options.workDir
 	if workDir == "" && cli.config.MountDir != "" {
@@ -366,6 +355,7 @@ func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.ID
 	return resp, errors.WithStack(err)
 }
 
+// ExecStart exec start
 func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 	execConfig := types.ExecStartCheck{
 		Tty: true,
@@ -388,6 +378,7 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 	return streamer.Stream(context.Background())
 }
 
+// FindContainer find container
 func (cli *DebugCli) FindContainer(name string) (string, error) {
 	containerArgs := filters.NewArgs()
 	containerArgs.Add("name", name)

@@ -10,6 +10,7 @@ import (
 )
 
 var (
+	// IsWindows7 is windows 7
 	IsWindows7 = false
 	// DefaultHTTPPort Default HTTP Port used if only the protocol is provided to -H flag e.g. dockerd -H tcp://
 	// These are the IANA registered port numbers for use with Docker

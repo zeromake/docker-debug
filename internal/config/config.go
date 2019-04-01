@@ -16,7 +16,9 @@ import (
 var configDir = ".docker-debug"
 
 var configName = "config.toml"
+// HOME system home path
 var HOME = "~"
+// PathSeparator path separator
 var PathSeparator = string(os.PathSeparator)
 
 // ConfigFile 默认配置文件
@@ -64,7 +66,7 @@ type Config struct {
 	DockerConfigDefault string                  `toml:"config_default"`
 	DockerConfig        map[string]DockerConfig `toml:"config"`
 }
-
+// Save save to default file
 func (c *Config) Save() error {
 	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
@@ -76,11 +78,14 @@ func (c *Config) Save() error {
 	}()
 	return encoder.Encode(c)
 }
+
+// Load reload default file
 func (c *Config) Load() error {
 	_, err := toml.DecodeFile(ConfigFile, c)
 	return errors.WithStack(err)
 }
 
+// PathExists path is has
 func PathExists(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -92,6 +97,7 @@ func PathExists(path string) bool {
 	return false
 }
 
+// LoadConfig load default file(not has init file)
 func LoadConfig() (*Config, error) {
 	if !PathExists(ConfigFile) {
 		return InitConfig()
@@ -105,6 +111,7 @@ func LoadConfig() (*Config, error) {
 	return config, err
 }
 
+// InitConfig init create file
 func InitConfig() (*Config, error) {
 	host, err := opts.ParseHost(false, "")
 	if err != nil {

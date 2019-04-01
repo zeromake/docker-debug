@@ -4,6 +4,7 @@ import (
 	"github.com/zeromake/moby/pkg/term"
 )
 
+// Streams interface
 type Streams interface {
 	Out() *OutStream
 	In() *InStream

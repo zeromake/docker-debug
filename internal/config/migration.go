@@ -14,6 +14,7 @@ type migration struct {
 
 var migrationArr = []*migration{}
 
+// MigrationConfig migration config version
 func MigrationConfig(conf *Config) error {
 	ver1 := version.Version
 	var flag bool

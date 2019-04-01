@@ -9,4 +9,5 @@ import (
 // DefaultHost constant defines the default host string used by docker on other hosts than Windows
 var DefaultHost = fmt.Sprintf("unix://%s", DefaultUnixSocket)
 
+// DefaultHTTPHost http host
 const DefaultHTTPHost = "localhost"

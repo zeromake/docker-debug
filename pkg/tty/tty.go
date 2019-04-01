@@ -2,20 +2,19 @@ package tty
 
 import (
 	"context"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
-	gosignal "os/signal"
+	goSignal "os/signal"
 	"runtime"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/zeromake/moby/api/types"
 	"github.com/zeromake/moby/client"
 	"github.com/zeromake/moby/pkg/signal"
 )
 
-// ResizeTtyTo resizes tty to specific height and width
+// ResizeTtyTo re sizes tty to specific height and width
 func ResizeTtyTo(ctx context.Context, client client.ContainerAPIClient, id string, height, width uint, isExec bool) {
 	if height == 0 && width == 0 {
 		return
@@ -34,7 +33,7 @@ func ResizeTtyTo(ctx context.Context, client client.ContainerAPIClient, id strin
 	}
 
 	if err != nil {
-		// logrus.Debugf("Error resize: %s", err)
+		logrus.Debugf("Error resize: %s", err)
 	}
 }
 
@@ -62,40 +61,13 @@ func MonitorTtySize(ctx context.Context, client client.ContainerAPIClient, out *
 			}
 		}()
 	} else {
-		sigchan := make(chan os.Signal, 1)
-		gosignal.Notify(sigchan, signal.SIGWINCH)
+		sigChan := make(chan os.Signal, 1)
+		goSignal.Notify(sigChan, signal.SIGWINCH)
 		go func() {
-			for range sigchan {
+			for range sigChan {
 				resizeTty()
 			}
 		}()
 	}
 	return nil
-}
-func ForwardAllSignals(ctx context.Context, client client.ContainerAPIClient, cid string) chan os.Signal {
-	sigc := make(chan os.Signal, 128)
-	signal.CatchAll(sigc)
-	go func() {
-		for s := range sigc {
-			if s == signal.SIGCHLD || s == signal.SIGPIPE {
-				continue
-			}
-			var sig string
-			for sigStr, sigN := range signal.SignalMap {
-				if sigN == s {
-					sig = sigStr
-					break
-				}
-			}
-			if sig == "" {
-				fmt.Printf("Unsupported signal: %v. Discarding.\n", s)
-				continue
-			}
-
-			if err := client.ContainerKill(ctx, cid, sig); err != nil {
-				logrus.Debugf("Error sending signal: %s", err)
-			}
-		}
-	}()
-	return sigc
 }
