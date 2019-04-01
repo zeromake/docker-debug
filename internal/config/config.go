@@ -9,7 +9,6 @@ import (
 	"github.com/zeromake/docker-debug/pkg/opts"
 	"github.com/zeromake/docker-debug/version"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -113,7 +112,9 @@ func LoadConfig() (*Config, error) {
 
 // InitConfig init create file
 func InitConfig() (*Config, error) {
-	host, err := opts.ParseHost(false, "")
+	host := os.Getenv("DOCKER_HOST")
+	tlsVerify := os.Getenv("DOCKER_TLS_VERIFY") == "1"
+	host, err := opts.ParseHost(tlsVerify, host)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -126,15 +127,10 @@ func InitConfig() (*Config, error) {
 	dc := DockerConfig{
 		Host: host,
 	}
-	if opts.IsWindows7 {
-		paths := []string{
-			HOME,
-			".docker",
-			"machine",
-			"certs",
-		}
+	certPath := os.Getenv("DOCKER_CERT_PATH")
+	if tlsVerify && certPath != "" {
 		dc.TLS = true
-		dc.CertDir = strings.Join(paths, PathSeparator)
+		dc.CertDir = certPath
 	}
 	config := &Config{
 		Version:             version.Version,
@@ -151,8 +147,6 @@ func InitConfig() (*Config, error) {
 		return nil, errors.WithStack(err)
 	}
 	encoder := toml.NewEncoder(file)
-	defer func() {
-		_ = file.Close()
-	}()
+	defer file.Close()
 	return config, encoder.Encode(config)
 }
