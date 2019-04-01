@@ -34,9 +34,10 @@ const (
 	defaultDomain       = "docker.io"
 	officialRepoName    = "library"
 )
-
+// DebugCliOption cli option
 type DebugCliOption func(cli *DebugCli) error
 
+// Cli interface
 type Cli interface {
 	Client() client.APIClient
 	Out() *stream.OutStream
@@ -48,6 +49,7 @@ type Cli interface {
 	Config() *config.Config
 }
 
+// DebugCli cli struct
 type DebugCli struct {
 	in     *stream.InStream
 	out    *stream.OutStream
@@ -215,7 +217,9 @@ func (cli *DebugCli) PullImage(image string) error {
 	domain, remainder := splitDockerDomain(image)
 	imageName := domain + "/" + remainder
 
-	responseBody, err := cli.client.ImagePull(cli.withContent(cli.config.Timeout*30), imageName, types.ImagePullOptions{})
+	ctx, cancel := cli.withContent(cli.config.Timeout * 30)
+	responseBody, err := cli.client.ImagePull(ctx, imageName, types.ImagePullOptions{})
+	cancel()
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -232,18 +236,21 @@ func (cli *DebugCli) PullImage(image string) error {
 func (cli *DebugCli) FindImage(image string) ([]types.ImageSummary, error) {
 	args := filters.NewArgs()
 	args.Add("reference", image)
-	return cli.client.ImageList(cli.withContent(cli.config.Timeout), types.ImageListOptions{
+	ctx, cancel := cli.withContent(cli.config.Timeout)
+	defer cancel()
+	return cli.client.ImageList(ctx, types.ImageListOptions{
 		Filters: args,
 	})
 }
 
 func (cli *DebugCli) Ping() (types.Ping, error) {
-	return cli.client.Ping(cli.withContent(cli.config.Timeout))
+	ctx, cancel := cli.withContent(cli.config.Timeout)
+	defer cancel()
+	return cli.client.Ping(ctx)
 }
 
-func (cli *DebugCli) withContent(timeout time.Duration) context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), timeout)
-	return ctx
+func (cli *DebugCli) withContent(timeout time.Duration) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), timeout)
 }
 
 func containerMode(name string) string {
@@ -251,9 +258,11 @@ func containerMode(name string) string {
 }
 
 func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
-	var mounts []mount.Mount = nil
+	var mounts []mount.Mount
 	if cli.config.MountDir != "" {
-		info, err := cli.client.ContainerInspect(cli.withContent(cli.config.Timeout), attachContainer)
+		ctx, cancel := cli.withContent(cli.config.Timeout)
+		info, err := cli.client.ContainerInspect(ctx, attachContainer)
+		cancel()
 		if err != nil {
 			return "", errors.WithStack(err)
 		}
@@ -297,27 +306,33 @@ func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 		Mounts:      mounts,
 		//VolumesFrom: []string{attachContainer},
 	}
+	ctx, cancel := cli.withContent(cli.config.Timeout)
 	body, err := cli.client.ContainerCreate(
-		cli.withContent(cli.config.Timeout),
+		ctx,
 		conf,
 		hostConfig,
 		nil,
 		"",
 	)
+	cancel()
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
+	ctx, cancel = cli.withContent(cli.config.Timeout)
 	err = cli.client.ContainerStart(
-		cli.withContent(cli.config.Timeout),
+		ctx,
 		body.ID,
 		types.ContainerStartOptions{},
 	)
+	cancel()
 	return body.ID, errors.WithStack(err)
 }
 
 func (cli *DebugCli) ContainerClean(id string) error {
+	ctx, cancel := cli.withContent(cli.config.Timeout)
+	defer cancel()
 	return errors.WithStack(cli.client.ContainerRemove(
-		cli.withContent(cli.config.Timeout),
+		ctx,
 		id,
 		types.ContainerRemoveOptions{
 			Force: true,
@@ -345,7 +360,9 @@ func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.ID
 		WorkingDir:   workDir,
 		Cmd:          options.command,
 	}
-	resp, err := cli.client.ContainerExecCreate(cli.withContent(cli.config.Timeout), container, opt)
+	ctx, cancel := cli.withContent(cli.config.Timeout)
+	defer cancel()
+	resp, err := cli.client.ContainerExecCreate(ctx, container, opt)
 	return resp, errors.WithStack(err)
 }
 
@@ -354,7 +371,9 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 		Tty: true,
 	}
 
-	response, err := cli.client.ContainerExecAttach(cli.withContent(cli.config.Timeout), execID, execConfig)
+	ctx, cancel := cli.withContent(cli.config.Timeout)
+	response, err := cli.client.ContainerExecAttach(ctx, execID, execConfig)
+	cancel()
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -372,9 +391,11 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 func (cli *DebugCli) FindContainer(name string) (string, error) {
 	containerArgs := filters.NewArgs()
 	containerArgs.Add("name", name)
-	list, err := cli.client.ContainerList(cli.withContent(cli.config.Timeout), types.ContainerListOptions{
+	ctx, cancel := cli.withContent(cli.config.Timeout)
+	list, err := cli.client.ContainerList(ctx, types.ContainerListOptions{
 		Filters: containerArgs,
 	})
+	cancel()
 	if err != nil {
 		return "", errors.WithStack(err)
 	}

@@ -1,0 +1,7 @@
+runner:
+  golint:
+    cmd: golint ./...
+    errorformat:
+      - "%f:%l:%c: %m"
+  govet:
+    cmd: go vet -all ./...

@@ -62,7 +62,7 @@ func newExecCommand() *cobra.Command {
 
 func runExec(options execOptions) error {
 	logrus.SetLevel(logrus.ErrorLevel)
-	var containerId string
+	var containerID string
 	conf, err := config.LoadConfig()
 	opts := []DebugCliOption{
 		WithConfig(conf),
@@ -71,7 +71,7 @@ func runExec(options execOptions) error {
 		conf.Image = options.image
 	}
 	if conf.Image == "" {
-		return errors.New("not set image!")
+		return errors.New("not set image")
 	}
 	if options.host != "" {
 		dockerConfig := config.DockerConfig{
@@ -100,8 +100,8 @@ func runExec(options execOptions) error {
 		return err
 	}
 	defer func() {
-		if containerId != "" {
-			err = cli.ContainerClean(containerId)
+		if containerID != "" {
+			err = cli.ContainerClean(containerID)
 			if err != nil {
 				logrus.Debugf("%+v", err)
 			}
@@ -128,15 +128,15 @@ func runExec(options execOptions) error {
 			return err
 		}
 	}
-	containerId, err = cli.FindContainer(options.container)
+	containerID, err = cli.FindContainer(options.container)
 	if err != nil {
 		return err
 	}
-	containerId, err = cli.CreateContainer(containerId)
+	containerID, err = cli.CreateContainer(containerID)
 	if err != nil {
 		return err
 	}
-	resp, err := cli.ExecCreate(options, containerId)
+	resp, err := cli.ExecCreate(options, containerID)
 	if err != nil {
 		return err
 	}

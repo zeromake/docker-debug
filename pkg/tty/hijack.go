@@ -19,7 +19,7 @@ import (
 // TODO: This could be moved to `pkg/term`.
 var defaultEscapeKeys = []byte{16, 17}
 
-// A hijackedIOStreamer handles copying input to and output from streams to the
+// HijackedIOStreamer handles copying input to and output from streams to the
 // connection.
 type HijackedIOStreamer struct {
 	Streams      stream.Streams
