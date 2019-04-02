@@ -202,8 +202,8 @@ func (cli *DebugCli) PullImage(image string) error {
 	imageName := domain + "/" + remainder
 
 	ctx, cancel := cli.withContent(cli.config.Timeout * 30)
+	defer cancel()
 	responseBody, err := cli.client.ImagePull(ctx, imageName, types.ImagePullOptions{})
-	cancel()
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -363,7 +363,7 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 
 	ctx, cancel := cli.withContent(cli.config.Timeout)
 	response, err := cli.client.ContainerExecAttach(ctx, execID, execConfig)
-	cancel()
+	defer cancel()
 	if err != nil {
 		return errors.WithStack(err)
 	}
