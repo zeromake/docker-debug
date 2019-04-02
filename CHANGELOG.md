@@ -2,6 +2,16 @@
 ## [Unreleased]
 
 
+<a name="v0.5.1"></a>
+## [v0.5.1] - 2019-04-03
+### Docs
+- update readme download lastest
+- up changelog
+
+### Fix
+- content error
+
+
 <a name="v0.5.0"></a>
 ## [v0.5.0] - 2019-04-01
 ### Docs
@@ -110,7 +120,8 @@
 - ignore add more
 
 
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.5.1...HEAD
+[v0.5.1]: https://github.com/zeromake/docker-debug/compare/v0.5.0...v0.5.1
 [v0.5.0]: https://github.com/zeromake/docker-debug/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/zeromake/docker-debug/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/zeromake/docker-debug/compare/v0.2.2...v0.3.0
