@@ -6,6 +6,7 @@ go:
 env:
   global:
     - REVIEWDOG_VERSION="0.9.11"
+    - GO111MODULE=on
 
 install:
   - mkdir -p ~/bin/ && export export PATH="~/bin/:$PATH"
