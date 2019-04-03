@@ -9,10 +9,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/zeromake/docker-debug/pkg/stream"
-	"github.com/zeromake/moby/api/types"
-	"github.com/zeromake/moby/pkg/ioutils"
-	"github.com/zeromake/moby/pkg/stdcopy"
-	"github.com/zeromake/moby/pkg/term"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/pkg/ioutils"
+	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/docker/docker/pkg/term"
 )
 
 // The default escape key sequence: ctrl-p, ctrl-q

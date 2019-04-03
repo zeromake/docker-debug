@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/zeromake/docker-debug/pkg/stream"
-	"github.com/zeromake/moby/api/types"
-	"github.com/zeromake/moby/client"
-	"github.com/zeromake/moby/pkg/signal"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/signal"
 )
 
 // ResizeTtyTo re sizes tty to specific height and width

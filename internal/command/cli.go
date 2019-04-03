@@ -8,12 +8,12 @@ import (
 	"github.com/zeromake/docker-debug/internal/config"
 	"github.com/zeromake/docker-debug/pkg/opts"
 	"github.com/zeromake/docker-debug/pkg/tty"
-	"github.com/zeromake/moby/api/types"
-	"github.com/zeromake/moby/api/types/container"
-	"github.com/zeromake/moby/api/types/filters"
-	"github.com/zeromake/moby/api/types/mount"
-	"github.com/zeromake/moby/api/types/strslice"
-	"github.com/zeromake/moby/pkg/jsonmessage"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/strslice"
+	"github.com/docker/docker/pkg/jsonmessage"
 	"io"
 	"runtime"
 	"strings"
@@ -21,8 +21,8 @@ import (
 
 	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/zeromake/docker-debug/version"
-	"github.com/zeromake/moby/client"
-	"github.com/zeromake/moby/pkg/term"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/term"
 )
 
 const (

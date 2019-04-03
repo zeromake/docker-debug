@@ -1,7 +1,7 @@
 package stream
 
 import (
-	"github.com/zeromake/moby/pkg/term"
+	"github.com/docker/docker/pkg/term"
 )
 
 // Streams interface
