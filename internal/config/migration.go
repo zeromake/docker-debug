@@ -36,7 +36,7 @@ func MigrationConfig(conf *Config) error {
 	if strings.HasSuffix(conf.MountDir, "/") {
 		flag = true
 		l := len(conf.MountDir)
-		conf.MountDir = conf.MountDir[:l - 1]
+		conf.MountDir = conf.MountDir[:l-1]
 	}
 	if v2.LT(v1) {
 		for _, m := range migrationArr {

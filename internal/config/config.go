@@ -15,8 +15,10 @@ import (
 var configDir = ".docker-debug"
 
 var configName = "config.toml"
+
 // HOME system home path
 var HOME = "~"
+
 // PathSeparator path separator
 var PathSeparator = string(os.PathSeparator)
 
@@ -65,6 +67,7 @@ type Config struct {
 	DockerConfigDefault string                  `toml:"config_default"`
 	DockerConfig        map[string]DockerConfig `toml:"config"`
 }
+
 // Save save to default file
 func (c *Config) Save() error {
 	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)

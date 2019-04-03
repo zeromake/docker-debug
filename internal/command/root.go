@@ -23,7 +23,7 @@ type execOptions struct {
 	container  string
 	certDir    string
 	command    []string
-	name string
+	name       string
 }
 
 func newExecOptions() execOptions {
@@ -161,6 +161,7 @@ func runExec(options execOptions) error {
 	}
 	return nil
 }
+
 // Execute main func
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {

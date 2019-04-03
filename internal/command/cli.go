@@ -3,26 +3,26 @@ package command
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/zeromake/docker-debug/internal/config"
-	"github.com/zeromake/docker-debug/pkg/opts"
-	"github.com/zeromake/docker-debug/pkg/tty"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/zeromake/docker-debug/internal/config"
+	"github.com/zeromake/docker-debug/pkg/opts"
+	"github.com/zeromake/docker-debug/pkg/tty"
 	"io"
 	"runtime"
 	"strings"
 	"time"
 
-	"github.com/zeromake/docker-debug/pkg/stream"
-	"github.com/zeromake/docker-debug/version"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/term"
+	"github.com/zeromake/docker-debug/pkg/stream"
+	"github.com/zeromake/docker-debug/version"
 )
 
 const (
@@ -34,6 +34,7 @@ const (
 	defaultDomain       = "docker.io"
 	officialRepoName    = "library"
 )
+
 // DebugCliOption cli option
 type DebugCliOption func(cli *DebugCli) error
 
@@ -57,6 +58,7 @@ type DebugCli struct {
 	client client.APIClient
 	config *config.Config
 }
+
 // NewDebugCli new DebugCli
 func NewDebugCli(ops ...DebugCliOption) (*DebugCli, error) {
 	cli := &DebugCli{}
@@ -77,7 +79,6 @@ func NewDebugCli(ops ...DebugCliOption) (*DebugCli, error) {
 	}
 	return cli, nil
 }
-
 
 // Apply all the operation on the cli
 func (cli *DebugCli) Apply(ops ...DebugCliOption) error {

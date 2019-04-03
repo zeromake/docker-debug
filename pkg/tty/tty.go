@@ -8,10 +8,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/signal"
+	"github.com/zeromake/docker-debug/pkg/stream"
 )
 
 // ResizeTtyTo re sizes tty to specific height and width

@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/docker/docker/pkg/term"
+	"github.com/pkg/errors"
 )
 
 // OutStream is an output stream used by the DockerCli to write normal program

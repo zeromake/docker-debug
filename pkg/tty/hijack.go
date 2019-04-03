@@ -6,13 +6,13 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/docker/pkg/term"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/zeromake/docker-debug/pkg/stream"
 )
 
 // The default escape key sequence: ctrl-p, ctrl-q
