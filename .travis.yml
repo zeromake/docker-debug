@@ -12,7 +12,7 @@ env:
 install:
   - mkdir -p ~/bin/ && export export PATH="~/bin/:$PATH"
   - curl -fSL https://github.com/reviewdog/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_linux_amd64 -o ~/bin/reviewdog && chmod +x ~/bin/reviewdog
-  - curl -fSL https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz -o ~/upx.tar.xz && tar -xf ~/upx.tar.xz && mv ~/upx-${UPX_VERSION}-amd64_linux/upx ~/bin
+  - curl -fSL https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz -o ~/upx.tar.xz && tar -xf ~/upx.tar.xz -C ~ && mv ~/upx-${UPX_VERSION}-amd64_linux/upx ~/bin
 
 script:
   - go mod tidy
