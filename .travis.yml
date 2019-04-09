@@ -11,6 +11,7 @@ env:
 install:
   - mkdir -p ~/bin/ && export export PATH="~/bin/:$PATH"
   - curl -fSL https://github.com/reviewdog/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_linux_amd64 -o ~/bin/reviewdog && chmod +x ~/bin/reviewdog
+  - sudo apt-get update
   - sudo apt-get install -y upx
 
 script:
