@@ -17,8 +17,12 @@ script:
   - go mod tidy
   - go test ./...
   - reviewdog -conf=.reviewdog.yml -reporter=github-pr-check
-  - ./scripts/binary.sh {darwin,windows,linux}
+  - ./scripts/binary.sh darwin
+  - ./scripts/binary.sh windows
+  - ./scripts/binary.sh linux
+  - file ./dist/* && ./dist/docker-debug-linux-amd64 info
   - upx ./dist/*
+  - file ./dist/* && ./dist/docker-debug-linux-amd64 info
 
 deploy:
   provider: releases
