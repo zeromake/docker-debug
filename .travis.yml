@@ -23,6 +23,7 @@ script:
   - ./scripts/binary.sh linux
   - file ./dist/* && ./dist/docker-debug-linux-amd64 info
   - ls ./dist | xargs -I {} upx ./dist/{} -o ./dist/{}-upx
+  - mv ./dist/docker-debug-windows-amd64.exe-upx ./dist/docker-debug-windows-amd64-upx.exe
   - file ./dist/* && ./dist/docker-debug-linux-amd64-upx info
 
 deploy:
