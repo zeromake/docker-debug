@@ -2,6 +2,30 @@
 ## [Unreleased]
 
 
+<a name="0.5.2"></a>
+## [0.5.2] - 2019-04-09
+### Docs
+- readme add icon
+- add license
+- update changelog
+
+### Feat
+- travis add deploy
+- go mod get docker pkg on latest
+
+### Fix
+- upx -o name change
+- upx out
+- del upx
+- tar -C
+- update upx pkg = 3.95
+- update apt pkg
+- change travis ci
+- update docker deb pkg latest
+- code style fmt
+- go mod env
+
+
 <a name="v0.5.1"></a>
 ## [v0.5.1] - 2019-04-03
 ### Docs
@@ -120,7 +144,8 @@
 - ignore add more
 
 
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/zeromake/docker-debug/compare/0.5.2...HEAD
+[0.5.2]: https://github.com/zeromake/docker-debug/compare/v0.5.1...0.5.2
 [v0.5.1]: https://github.com/zeromake/docker-debug/compare/v0.5.0...v0.5.1
 [v0.5.0]: https://github.com/zeromake/docker-debug/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/zeromake/docker-debug/compare/v0.3.0...v0.4.0
