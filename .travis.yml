@@ -11,8 +11,21 @@ env:
 install:
   - mkdir -p ~/bin/ && export export PATH="~/bin/:$PATH"
   - curl -fSL https://github.com/reviewdog/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_linux_amd64 -o ~/bin/reviewdog && chmod +x ~/bin/reviewdog
+  - sudo apt-get install -y upx
 
 script:
   - go mod tidy
   - go test ./...
   - reviewdog -conf=.reviewdog.yml -reporter=github-pr-check
+  - ./scripts/binary.sh {darwin,windows,linux}
+  - upx ./dist/*
+
+deploy:
+  provider: releases
+  api_key:
+    secure: ${GITHUB_TOKEN}
+  file_glob: true
+  file: dist/*
+  skip_cleanup: true
+  on:
+    tags: true
