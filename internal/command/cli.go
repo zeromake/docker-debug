@@ -245,7 +245,7 @@ func containerMode(name string) string {
 }
 
 // CreateContainer create new container and attach target container resource
-func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
+func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions) (string, error) {
 	var mounts []mount.Mount
 	if cli.config.MountDir != "" {
 		ctx, cancel := cli.withContent(cli.config.Timeout)
@@ -276,7 +276,41 @@ func (cli *DebugCli) CreateContainer(attachContainer string) (string, error) {
 			})
 		}
 	}
-
+	if options.volumes != nil {
+		// -v bind mount
+		if mounts == nil {
+			mounts = []mount.Mount{}
+		}
+		for _, m := range options.volumes {
+			mountArgs := strings.Split(m, ":")
+			mountLen := len(mountArgs)
+			if mountLen > 0 && mountLen <= 3 {
+				mountDefault := mount.Mount{
+					Type: "bind",
+					ReadOnly: false,
+				}
+				switch mountLen {
+				case 1:
+					mountDefault.Source = mountArgs[0]
+					mountDefault.Target = mountArgs[0]
+				case 2:
+					if mountArgs[1] == "rw" || mountArgs[1] == "ro" {
+						mountDefault.ReadOnly = mountArgs[1] != "rw"
+						mountDefault.Source = mountArgs[0]
+						mountDefault.Target = mountArgs[0]
+					} else {
+						mountDefault.Source = mountArgs[0]
+						mountDefault.Target = mountArgs[1]
+					}
+				case 3:
+					mountDefault.Source = mountArgs[0]
+					mountDefault.Target = mountArgs[1]
+					mountDefault.ReadOnly = mountArgs[2] != "rw"
+				}
+				mounts = append(mounts, mountDefault)
+			}
+		}
+	}
 	targetName := containerMode(attachContainer)
 
 	conf := &container.Config{

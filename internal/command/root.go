@@ -24,6 +24,7 @@ type execOptions struct {
 	certDir    string
 	command    []string
 	name       string
+	volumes    []string
 }
 
 func newExecOptions() execOptions {
@@ -47,6 +48,7 @@ func newExecCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
+	flags.StringArrayVarP(&options.volumes, "volume", "v", nil, "Attach a filesystem mount to the container")
 	flags.StringVarP(&options.image, "image", "i", "", "use this image")
 	flags.StringVarP(&options.name, "name", "n", "", "docker config name")
 	flags.StringVarP(&options.host, "host", "H", "", "connection host's docker (format: tcp://192.168.99.100:2376)")
@@ -60,10 +62,11 @@ func newExecCommand() *cobra.Command {
 	return cmd
 }
 
-func runExec(options execOptions) error {
-	logrus.SetLevel(logrus.ErrorLevel)
-	var containerID string
+func buildCli(options execOptions) (*DebugCli, error) {
 	conf, err := config.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
 	opts := []DebugCliOption{
 		WithConfig(conf),
 	}
@@ -71,7 +74,7 @@ func runExec(options execOptions) error {
 		conf.Image = options.image
 	}
 	if conf.Image == "" {
-		return errors.New("not set image")
+		return nil, errors.New("not set image")
 	}
 	if options.host != "" {
 		dockerConfig := config.DockerConfig{
@@ -90,15 +93,22 @@ func runExec(options execOptions) error {
 			opt, ok = conf.DockerConfig[options.name]
 		}
 		if !ok {
-			return errors.Errorf("not find %s docker config", name)
+			return nil, errors.Errorf("not find %s docker config", name)
 		}
 		opts = append(opts, WithClientConfig(opt))
 	}
 
-	cli, err := NewDebugCli(opts...)
+	return NewDebugCli(opts...)
+}
+
+func runExec(options execOptions) error {
+	logrus.SetLevel(logrus.ErrorLevel)
+	var containerID string
+	cli, err := buildCli(options)
 	if err != nil {
 		return err
 	}
+	conf := cli.Config()
 	defer func() {
 		if containerID != "" {
 			err = cli.ContainerClean(containerID)
@@ -132,7 +142,7 @@ func runExec(options execOptions) error {
 	if err != nil {
 		return err
 	}
-	containerID, err = cli.CreateContainer(containerID)
+	containerID, err = cli.CreateContainer(containerID, options)
 	if err != nil {
 		return err
 	}
