@@ -15,6 +15,7 @@ import (
 	"github.com/zeromake/docker-debug/pkg/opts"
 	"github.com/zeromake/docker-debug/pkg/tty"
 	"io"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -33,6 +34,9 @@ const (
 	legacyDefaultDomain = "index.docker.io"
 	defaultDomain       = "docker.io"
 	officialRepoName    = "library"
+)
+var (
+	containerIDReg = regexp.MustCompile("^([0-9a-fA-F]{12})|([0-9a-fA-F]{64})$")
 )
 
 // DebugCliOption cli option
@@ -415,26 +419,32 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 
 // FindContainer find container
 func (cli *DebugCli) FindContainer(name string) (string, error) {
-	containerArgs := filters.NewArgs()
-	containerArgs.Add("name", name)
-	ctx, cancel := cli.withContent(cli.config.Timeout)
-	list, err := cli.client.ContainerList(ctx, types.ContainerListOptions{
-		Filters: containerArgs,
-	})
-	cancel()
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	listLen := len(list)
-	if listLen == 1 {
-		return list[0].ID, nil
-	}
-	if listLen == 0 {
-		return "", errors.Errorf("not find %s container!", name)
-	}
-	var containerNames = []string{}
-	for _, c := range list {
-		containerNames = append(containerNames, strings.Join(c.Names, "/"))
-	}
-	return "", errors.Errorf("ContainerList:\n%s\n", strings.Join(containerNames, "\n"))
+	return name, nil
+	//containerArgs := filters.NewArgs()
+	//containerArgs.Add("status", "running")
+	//if containerIDReg.MatchString(name) {
+	//	containerArgs.Add("id", name)
+	//} else {
+	//	containerArgs.Add("name", name)
+	//}
+	//ctx, cancel := cli.withContent(cli.config.Timeout)
+	//list, err := cli.client.ContainerList(ctx, types.ContainerListOptions{
+	//	Filters: containerArgs,
+	//})
+	//cancel()
+	//if err != nil {
+	//	return "", errors.WithStack(err)
+	//}
+	//listLen := len(list)
+	//if listLen == 1 {
+	//	return list[0].ID, nil
+	//}
+	//if listLen == 0 {
+	//	return "", errors.Errorf("not find %s container!", name)
+	//}
+	//var containerNames = []string{}
+	//for _, c := range list {
+	//	containerNames = append(containerNames, strings.Join(c.Names, "/"))
+	//}
+	//return "", errors.Errorf("ContainerList:\n%s\n", strings.Join(containerNames, "\n"))
 }
