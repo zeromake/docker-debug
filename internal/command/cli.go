@@ -258,6 +258,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		if err != nil {
 			return "", errors.WithStack(err)
 		}
+		attachContainer = info.ID
 		mountDir, ok := info.GraphDriver.Data["MergedDir"]
 		mounts = []mount.Mount{}
 		if ok {
