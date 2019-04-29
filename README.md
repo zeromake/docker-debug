@@ -27,16 +27,16 @@ brew install docker-debug
 **download binary file**
 ``` shell
 # MacOS
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/0.6.0/docker-debug-darwin-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/0.6.1/docker-debug-darwin-amd64
 
 # Linux
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/0.6.0/docker-debug-linux-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/0.6.1/docker-debug-linux-amd64
 
 chmod +x ./docker-debug
 sudo mv docker-debug /usr/local/bin/
 
 # Windows
-curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/0.6.0/docker-debug-windows-amd64.exe
+curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/0.6.1/docker-debug-windows-amd64.exe
 ```
 
 download the latest binary from the [release page](https://github.com/zeromake/docker-debug/releases/lastest) and add it to your PATH.
@@ -64,7 +64,7 @@ mv docker-debug /usr/local/bin
 docker-debug uses nicolaka/netshoot as the default image to run debug container.
 You can override the default image with cli flag, or even better, with config file ~/.docker-debug/config.toml
 ``` toml
-version = "0.5.0"
+version = "0.6.1"
 image = "nicolaka/netshoot:latest"
 mount_dir = "/mnt/container"
 timeout = 10000000000
