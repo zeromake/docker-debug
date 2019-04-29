@@ -1,5 +1,11 @@
-<a name="unreleased"></a>
-## [Unreleased]
+<a name="0.6.1"></a>
+## [0.6.1] - 2019-04-28
+### Docs
+- update changelog
+
+### Fix
+- create container change id
+- del find container handle
 
 
 <a name="0.6.0"></a>
@@ -157,7 +163,8 @@
 - ignore add more
 
 
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/zeromake/docker-debug/compare/0.6.1...HEAD
+[0.6.1]: https://github.com/zeromake/docker-debug/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/zeromake/docker-debug/compare/0.5.2...0.6.0
 [0.5.2]: https://github.com/zeromake/docker-debug/compare/v0.5.1...0.5.2
 [v0.5.1]: https://github.com/zeromake/docker-debug/compare/v0.5.0...v0.5.1
