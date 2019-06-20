@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -25,6 +26,7 @@ type execOptions struct {
 	command    []string
 	name       string
 	volumes    []string
+	ipc        bool
 }
 
 func newExecOptions() execOptions {
@@ -59,6 +61,7 @@ func newExecCommand() *cobra.Command {
 	flags.StringVarP(&options.workDir, "work-dir", "w", "", "Working directory inside the container")
 	_ = flags.SetAnnotation("work-dir", "version", []string{"1.35"})
 	flags.StringVarP(&options.targetDir, "target-dir", "t", "", "Working directory inside the container")
+	flags.BoolVar(&options.ipc, "ipc", false, "share target container ipc")
 	return cmd
 }
 

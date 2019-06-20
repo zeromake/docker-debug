@@ -328,10 +328,14 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 	hostConfig := &container.HostConfig{
 		NetworkMode: container.NetworkMode(targetName),
 		UsernsMode:  container.UsernsMode(targetName),
-		IpcMode:     container.IpcMode(targetName),
 		PidMode:     container.PidMode(targetName),
 		Mounts:      mounts,
 		//VolumesFrom: []string{attachContainer},
+	}
+
+	// default is not use ipc
+	if(options.ipc) {
+		hostConfig.IpcMode = container.IpcMode(targetName)
 	}
 	ctx, cancel := cli.withContent(cli.config.Timeout)
 	body, err := cli.client.ContainerCreate(
