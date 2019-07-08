@@ -108,3 +108,33 @@ config_default = "default"
 1. [kubectl-debug](https://github.com/aylei/kubectl-debug): `docker-debug` inspiration is from to this a kubectl debug tool.
 2. [Docker核心技术与实现原理](https://draveness.me/docker): `docker-debug` filesystem is from the blog.
 3. [docker-engine-api-doc](https://docs.docker.com/engine/api/latest): docker engine api document.
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/zeromake/docker-debug/graphs/contributors"><img src="https://opencollective.com/docker-debug/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/docker-debug/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/docker-debug"><img src="https://opencollective.com/docker-debug/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/docker-debug/contribute)]
+
+<a href="https://opencollective.com/docker-debug/organization/0/website"><img src="https://opencollective.com/docker-debug/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/1/website"><img src="https://opencollective.com/docker-debug/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/2/website"><img src="https://opencollective.com/docker-debug/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/3/website"><img src="https://opencollective.com/docker-debug/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/4/website"><img src="https://opencollective.com/docker-debug/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/5/website"><img src="https://opencollective.com/docker-debug/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/6/website"><img src="https://opencollective.com/docker-debug/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/7/website"><img src="https://opencollective.com/docker-debug/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/8/website"><img src="https://opencollective.com/docker-debug/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/docker-debug/organization/9/website"><img src="https://opencollective.com/docker-debug/organization/9/avatar.svg"></a>
