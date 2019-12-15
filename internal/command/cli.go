@@ -258,6 +258,9 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		if err != nil {
 			return "", errors.WithStack(err)
 		}
+		if !info.State.Running {
+			return "", errors.Errorf("container: `%s` is not running", attachContainer)
+		}
 		attachContainer = info.ID
 		mountDir, ok := info.GraphDriver.Data["MergedDir"]
 		mounts = []mount.Mount{}
@@ -334,7 +337,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 	}
 
 	// default is not use ipc
-	if(options.ipc) {
+	if options.ipc {
 		hostConfig.IpcMode = container.IpcMode(targetName)
 	}
 	ctx, cancel := cli.withContent(cli.config.Timeout)
