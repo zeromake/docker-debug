@@ -26,16 +26,16 @@ brew install docker-debug
 **下载二进制文件**
 ``` shell
 # MacOS
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/0.6.2/docker-debug-darwin-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/0.6.3/docker-debug-darwin-amd64
 
 # Linux
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/0.6.2/docker-debug-linux-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/0.6.3/docker-debug-linux-amd64
 
 chmod +x ./docker-debug
 sudo mv docker-debug /usr/local/bin/
 
 # Windows
-curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/0.6.2/docker-debug-windows-amd64.exe
+curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/0.6.3/docker-debug-windows-amd64.exe
 ```
 
 或者到 [release page](https://github.com/zeromake/docker-debug/releases/lastest) 下载最新可执行文件并添加到 PATH。
@@ -64,7 +64,7 @@ docker-debug 使用 `nicolaka/netshoot` 作为默认镜像来运行额外容器�
 你可以通过命令行 `flag(--image)` 覆盖默认镜像，或者直接修改配置文件 `~/.docker-debug/config.toml` 中的 `image`。
 ``` toml
 # 配置文件版本号
-version = "0.6.1"
+version = "0.6.3"
 # 目标容器文件系统挂载点
 mount_dir = "/mnt/container"
 # 默认镜像
