@@ -14,19 +14,21 @@ import (
 var rootCmd = newExecCommand()
 
 type execOptions struct {
-	host       string
-	image      string
-	detachKeys string
-	user       string
-	privileged bool
-	workDir    string
-	targetDir  string
-	container  string
-	certDir    string
-	command    []string
-	name       string
-	volumes    []string
-	ipc        bool
+	host         string
+	image        string
+	detachKeys   string
+	user         string
+	privileged   bool
+	workDir      string
+	targetDir    string
+	container    string
+	certDir      string
+	command      []string
+	name         string
+	volumes      []string
+	ipc          bool
+	securityOpts []string
+	capAdds      []string
 }
 
 func newExecOptions() execOptions {
@@ -61,6 +63,8 @@ func newExecCommand() *cobra.Command {
 	flags.StringVarP(&options.workDir, "work-dir", "w", "", "Working directory inside the container")
 	_ = flags.SetAnnotation("work-dir", "version", []string{"1.35"})
 	flags.StringVarP(&options.targetDir, "target-dir", "t", "", "Working directory inside the container")
+	flags.StringArrayVarP(&options.securityOpts, "security-opts", "s", nil, "Add security options to the Docker container")
+	flags.StringArrayVarP(&options.capAdds, "cap-adds", "C", nil, "Add Linux capabilities to the Docker container")
 	flags.BoolVar(&options.ipc, "ipc", false, "share target container ipc")
 	return cmd
 }
