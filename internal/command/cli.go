@@ -333,6 +333,8 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		UsernsMode:  container.UsernsMode(targetName),
 		PidMode:     container.PidMode(targetName),
 		Mounts:      mounts,
+		SecurityOpt: options.securityOpts,
+		CapAdd:      options.capAdds,
 		//VolumesFrom: []string{attachContainer},
 	}
 
