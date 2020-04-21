@@ -1,3 +1,18 @@
+<a name="0.7.0"></a>
+## [0.7.0] - 2020-04-21
+### Docs
+- update readme
+
+### Feat
+- update mod dep
+- add support `gdb`
+
+<a name="0.6.3"></a>
+## [0.6.3] - 2019-12-15
+### Fix
+- check container is running
+- update change log
+
 <a name="0.6.2"></a>
 ## [0.6.2] - 2019-06-20
 ### Doc
@@ -179,7 +194,9 @@
 - ignore add more
 
 
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/0.6.2...HEAD
+[Unreleased]: https://github.com/zeromake/docker-debug/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/zeromake/docker-debug/compare/0.6.3...0.7.0
+[0.6.3]: https://github.com/zeromake/docker-debug/compare/0.6.2...0.6.3
 [0.6.2]: https://github.com/zeromake/docker-debug/compare/0.6.1...0.6.2
 [0.6.1]: https://github.com/zeromake/docker-debug/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/zeromake/docker-debug/compare/0.5.2...0.6.0

@@ -27,10 +27,9 @@ script:
 
 deploy:
   provider: releases
-  api_key:
-    secure: ${GITHUB_TOKEN}
+  token: ${GITHUB_TOKEN}
   file_glob: true
   file: dist/*
-  skip_cleanup: true
+  cleanup: false
   on:
     tags: true
