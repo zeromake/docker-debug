@@ -31,5 +31,6 @@ deploy:
   file_glob: true
   file: dist/*
   cleanup: false
+  skip_cleanup: true
   on:
     tags: true
