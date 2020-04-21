@@ -119,7 +119,7 @@ func WithClientConfig(dockerConfig config.DockerConfig) DebugCliOption {
 		if err != nil {
 			return err
 		}
-		clientOpts := []func(*client.Client) error{
+		clientOpts := []client.Opt{
 			client.WithHost(host),
 			client.WithVersion(""),
 		}
