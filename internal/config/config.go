@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/docker/docker/api"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/zeromake/docker-debug/pkg/opts"
@@ -47,6 +48,7 @@ func init() {
 
 // DockerConfig docker 配置
 type DockerConfig struct {
+	Version      string `toml:"version"`
 	Host         string `toml:"host"`
 	TLS          bool   `toml:"tls"`
 	CertDir      string `toml:"cert_dir"`
@@ -128,7 +130,8 @@ func InitConfig() (*Config, error) {
 		}
 	}
 	dc := DockerConfig{
-		Host: host,
+		Host:    host,
+		Version: api.DefaultVersion,
 	}
 	certPath := os.Getenv("DOCKER_CERT_PATH")
 	if tlsVerify && certPath != "" {

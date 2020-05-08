@@ -12,7 +12,7 @@ type migration struct {
 	Version semver.Version
 }
 
-var migrationArr = []*migration{}
+var migrationArr []*migration
 
 // MigrationConfig migration config version
 func MigrationConfig(conf *Config) error {
