@@ -5,8 +5,8 @@ go:
 
 env:
   global:
-    - REVIEWDOG_VERSION="0.9.11"
-    - UPX_VERSION="3.95"
+    - REVIEWDOG_VERSION="0.10.0"
+    - UPX_VERSION="3.96"
     - GO111MODULE=on
 
 install:
