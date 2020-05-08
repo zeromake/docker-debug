@@ -27,7 +27,7 @@ func init() {
 				}
 				return errors.Errorf("not find %s config", name)
 			}
-			conf.DockerConfig[name] = *cfg
+			conf.DockerConfig[name] = cfg
 			return conf.Save()
 		},
 	}

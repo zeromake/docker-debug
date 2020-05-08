@@ -67,7 +67,7 @@ type Config struct {
 	Image               string                  `toml:"image"`
 	Timeout             time.Duration           `toml:"timeout"`
 	DockerConfigDefault string                  `toml:"config_default"`
-	DockerConfig        map[string]DockerConfig `toml:"config"`
+	DockerConfig        map[string]*DockerConfig `toml:"config"`
 }
 
 // Save save to default file
@@ -144,8 +144,8 @@ func InitConfig() (*Config, error) {
 		Timeout:             time.Second * 10,
 		MountDir:            "/mnt/container",
 		DockerConfigDefault: "default",
-		DockerConfig: map[string]DockerConfig{
-			"default": dc,
+		DockerConfig: map[string]*DockerConfig{
+			"default": &dc,
 		},
 	}
 	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)

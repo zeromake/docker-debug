@@ -84,7 +84,7 @@ func buildCli(options execOptions) (*DebugCli, error) {
 		return nil, errors.New("not set image")
 	}
 	if options.host != "" {
-		dockerConfig := config.DockerConfig{
+		dockerConfig := &config.DockerConfig{
 			Host: options.host,
 		}
 		if options.certDir != "" {

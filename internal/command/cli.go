@@ -103,7 +103,7 @@ func WithConfig(config *config.Config) DebugCliOption {
 }
 
 // WithClientConfig set docker config
-func WithClientConfig(dockerConfig config.DockerConfig) DebugCliOption {
+func WithClientConfig(dockerConfig *config.DockerConfig) DebugCliOption {
 	return func(cli *DebugCli) error {
 		if cli.client != nil {
 			err := cli.client.Close()
