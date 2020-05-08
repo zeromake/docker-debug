@@ -11,7 +11,7 @@ env:
 
 install:
   - mkdir -p ~/bin/ && export export PATH="~/bin/:$PATH"
-  - curl -fSL https://github.com/reviewdog/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_${$REVIEWDOG_VERSION}_Linux_x86_64.tar.gz -o ~/reviewdog.tar.gz && tar -xf ~/reviewdog.tar.gz -C ~ && mv ~/reviewdog ~/bin
+  - curl -fSL https://github.com/reviewdog/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_${REVIEWDOG_VERSION}_Linux_x86_64.tar.gz -o ~/reviewdog.tar.gz && tar -xf ~/reviewdog.tar.gz -C ~ && mv ~/reviewdog ~/bin
   - curl -fSL https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz -o ~/upx.tar.xz && tar -xf ~/upx.tar.xz -C ~ && mv ~/upx-${UPX_VERSION}-amd64_linux/upx ~/bin
 
 script:
