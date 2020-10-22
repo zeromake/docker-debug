@@ -3,6 +3,9 @@ package command
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -45,7 +48,11 @@ func newExecCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.container = args[0]
 			options.command = args[1:]
-			return runExec(options)
+			err := runExec(options)
+			if errors.Is(err, context.Canceled) {
+				return nil
+			}
+			return err
 		},
 	}
 
@@ -69,7 +76,7 @@ func newExecCommand() *cobra.Command {
 	return cmd
 }
 
-func buildCli(options execOptions) (*DebugCli, error) {
+func buildCli(ctx context.Context, options execOptions) (*DebugCli, error) {
 	conf, err := config.LoadConfig()
 	if err != nil {
 		return nil, err
@@ -105,18 +112,36 @@ func buildCli(options execOptions) (*DebugCli, error) {
 		opts = append(opts, WithClientConfig(opt))
 	}
 
-	return NewDebugCli(opts...)
+	cli, err := NewDebugCli(opts...)
+	if err != nil {
+		return nil, err
+	}
+	cli.ctx = ctx
+	return cli, err
 }
 
 func runExec(options execOptions) error {
+	var ctx, cancel = context.WithCancel(context.Background())
 	logrus.SetLevel(logrus.ErrorLevel)
 	var containerID string
-	cli, err := buildCli(options)
+	cli, err := buildCli(ctx, options)
 	if err != nil {
+		cancel()
 		return err
 	}
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		<-c
+		cancel()
+	}()
 	conf := cli.Config()
 	defer func() {
+		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				cli.ctx = context.Background()
+			}
+		}
 		if containerID != "" {
 			err = cli.ContainerClean(containerID)
 			if err != nil {
@@ -130,11 +155,13 @@ func runExec(options execOptions) error {
 	}()
 	_, err = cli.Ping()
 	if err != nil {
+		cancel()
 		return err
 	}
 	// find image
 	images, err := cli.FindImage(conf.Image)
 	if err != nil {
+		cancel()
 		return err
 	}
 
@@ -142,19 +169,23 @@ func runExec(options execOptions) error {
 		// pull image
 		err = cli.PullImage(conf.Image)
 		if err != nil {
+			cancel()
 			return err
 		}
 	}
 	containerID, err = cli.FindContainer(options.container)
 	if err != nil {
+		cancel()
 		return err
 	}
 	containerID, err = cli.CreateContainer(containerID, options)
 	if err != nil {
+		cancel()
 		return err
 	}
 	resp, err := cli.ExecCreate(options, containerID)
 	if err != nil {
+		cancel()
 		return err
 	}
 
@@ -167,15 +198,18 @@ func runExec(options execOptions) error {
 		}()
 	}()
 	if cli.In().IsTerminal() {
-		if err := tty.MonitorTtySize(context.Background(), cli.Client(), cli.Out(), resp.ID, true); err != nil {
+		if err := tty.MonitorTtySize(ctx, cli.Client(), cli.Out(), resp.ID, true); err != nil {
 			_, _ = fmt.Fprintln(cli.Err(), "Error monitoring TTY size:", err)
 		}
 	}
 
-	if err := <-errCh; err != nil {
+	err = <-errCh
+	if err != nil {
 		logrus.Debugf("Error hijack: %s", err)
+		cancel()
 		return err
 	}
+	cancel()
 	return nil
 }
 

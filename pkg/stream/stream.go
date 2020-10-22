@@ -1,8 +1,6 @@
 package stream
 
-import (
-	"github.com/docker/docker/pkg/term"
-)
+import "github.com/moby/term"
 
 // Streams interface
 type Streams interface {

@@ -3,25 +3,26 @@ package command
 import (
 	"context"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/strslice"
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/zeromake/docker-debug/internal/config"
-	"github.com/zeromake/docker-debug/pkg/opts"
-	"github.com/zeromake/docker-debug/pkg/tty"
 	"io"
 	"regexp"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/strslice"
+	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/moby/term"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/zeromake/docker-debug/internal/config"
+	"github.com/zeromake/docker-debug/pkg/opts"
+	"github.com/zeromake/docker-debug/pkg/tty"
+
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/term"
 	"github.com/zeromake/docker-debug/pkg/stream"
 	"github.com/zeromake/docker-debug/version"
 )
@@ -35,6 +36,7 @@ const (
 	defaultDomain       = "docker.io"
 	officialRepoName    = "library"
 )
+
 var (
 	containerIDReg = regexp.MustCompile("^([0-9a-fA-F]{12})|([0-9a-fA-F]{64})$")
 )
@@ -61,6 +63,7 @@ type DebugCli struct {
 	err    io.Writer
 	client client.APIClient
 	config *config.Config
+	ctx    context.Context
 }
 
 // NewDebugCli new DebugCli
@@ -241,7 +244,7 @@ func (cli *DebugCli) Ping() (types.Ping, error) {
 }
 
 func (cli *DebugCli) withContent(timeout time.Duration) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), timeout)
+	return context.WithTimeout(cli.ctx, timeout)
 }
 
 func containerMode(name string) string {
@@ -294,7 +297,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 			mountLen := len(mountArgs)
 			if mountLen > 0 && mountLen <= 3 {
 				mountDefault := mount.Mount{
-					Type: "bind",
+					Type:     "bind",
 					ReadOnly: false,
 				}
 				switch mountLen {
@@ -335,6 +338,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		Mounts:      mounts,
 		SecurityOpt: options.securityOpts,
 		CapAdd:      options.capAdds,
+		AutoRemove:  true,
 		//VolumesFrom: []string{attachContainer},
 	}
 
@@ -347,6 +351,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		ctx,
 		conf,
 		hostConfig,
+		nil,
 		nil,
 		"",
 	)
@@ -368,12 +373,11 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 func (cli *DebugCli) ContainerClean(id string) error {
 	ctx, cancel := cli.withContent(cli.config.Timeout)
 	defer cancel()
-	return errors.WithStack(cli.client.ContainerRemove(
+	timeout := time.Second
+	return errors.WithStack(cli.client.ContainerStop(
 		ctx,
 		id,
-		types.ContainerRemoveOptions{
-			Force: true,
-		},
+		&timeout,
 	))
 }
 
@@ -424,7 +428,7 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 		Resp:         response,
 		TTY:          true,
 	}
-	return streamer.Stream(context.Background())
+	return streamer.Stream(cli.ctx)
 }
 
 // FindContainer find container
