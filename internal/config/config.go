@@ -3,28 +3,25 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/BurntSushi/toml"
 	"github.com/docker/docker/api"
-	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/zeromake/docker-debug/pkg/opts"
 	"github.com/zeromake/docker-debug/version"
-	"os"
-	"time"
 )
 
 var configDir = ".docker-debug"
 
 var configName = "config.toml"
 
-// HOME system home path
-var HOME = "~"
-
 // PathSeparator path separator
 var PathSeparator = string(os.PathSeparator)
 
 // ConfigFile 默认配置文件
-var ConfigFile = fmt.Sprintf(
+var File = fmt.Sprintf(
 	"~%s%s%s%s",
 	PathSeparator,
 	configDir,
@@ -37,13 +34,13 @@ func init() {
 		home string
 		err  error
 	)
-	home, err = homedir.Dir()
+	home, err = os.UserHomeDir()
 	if err != nil {
 		return
 	}
-	HOME = home
+	//HOME = home
 	configDir = fmt.Sprintf("%s%s%s", home, PathSeparator, configDir)
-	ConfigFile = fmt.Sprintf("%s%s%s", configDir, PathSeparator, configName)
+	File = fmt.Sprintf("%s%s%s", configDir, PathSeparator, configName)
 }
 
 // DockerConfig docker 配置
@@ -62,17 +59,17 @@ func (c DockerConfig) String() string {
 
 // Config 配置
 type Config struct {
-	Version             string                  `toml:"version"`
-	MountDir            string                  `toml:"mount_dir"`
-	Image               string                  `toml:"image"`
-	Timeout             time.Duration           `toml:"timeout"`
-	DockerConfigDefault string                  `toml:"config_default"`
+	Version             string                   `toml:"version"`
+	MountDir            string                   `toml:"mount_dir"`
+	Image               string                   `toml:"image"`
+	Timeout             time.Duration            `toml:"timeout"`
+	DockerConfigDefault string                   `toml:"config_default"`
 	DockerConfig        map[string]*DockerConfig `toml:"config"`
 }
 
 // Save save to default file
 func (c *Config) Save() error {
-	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(File, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -85,7 +82,7 @@ func (c *Config) Save() error {
 
 // Load reload default file
 func (c *Config) Load() error {
-	_, err := toml.DecodeFile(ConfigFile, c)
+	_, err := toml.DecodeFile(File, c)
 	return errors.WithStack(err)
 }
 
@@ -103,11 +100,11 @@ func PathExists(path string) bool {
 
 // LoadConfig load default file(not has init file)
 func LoadConfig() (*Config, error) {
-	if !PathExists(ConfigFile) {
+	if !PathExists(File) {
 		return InitConfig()
 	}
 	config := &Config{}
-	_, err := toml.DecodeFile(ConfigFile, config)
+	_, err := toml.DecodeFile(File, config)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -148,7 +145,7 @@ func InitConfig() (*Config, error) {
 			"default": &dc,
 		},
 	}
-	file, err := os.OpenFile(ConfigFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(File, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

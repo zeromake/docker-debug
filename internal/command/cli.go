@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"regexp"
-	"runtime"
+	"path"
 	"strings"
 	"time"
 
@@ -24,7 +23,6 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/zeromake/docker-debug/pkg/stream"
-	"github.com/zeromake/docker-debug/version"
 )
 
 const (
@@ -35,10 +33,6 @@ const (
 	legacyDefaultDomain = "index.docker.io"
 	defaultDomain       = "docker.io"
 	officialRepoName    = "library"
-)
-
-var (
-	containerIDReg = regexp.MustCompile("^([0-9a-fA-F]{12})|([0-9a-fA-F]{64})$")
 )
 
 // DebugCliOption cli option
@@ -143,9 +137,6 @@ func WithClientConfig(dockerConfig *config.DockerConfig) DebugCliOption {
 }
 
 // UserAgent returns the user agent string used for making API requests
-func UserAgent() string {
-	return "Docker-Debug-Client/" + version.Version + " (" + runtime.GOOS + ")"
-}
 
 // Close cli close
 func (cli *DebugCli) Close() error {
@@ -207,7 +198,7 @@ func splitDockerDomain(name string) (domain, remainder string) {
 // PullImage pull docker image
 func (cli *DebugCli) PullImage(image string) error {
 	domain, remainder := splitDockerDomain(image)
-	imageName := domain + "/" + remainder
+	imageName := path.Join(domain, remainder)
 
 	ctx, cancel := cli.withContent(cli.config.Timeout * 30)
 	defer cancel()
@@ -254,23 +245,28 @@ func containerMode(name string) string {
 // CreateContainer create new container and attach target container resource
 func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions) (string, error) {
 	var mounts []mount.Mount
+	var mergedDir string
+	var ok bool
+	ctx, cancel := cli.withContent(cli.config.Timeout)
+	info, err := cli.client.ContainerInspect(ctx, attachContainer)
+	cancel()
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	if !info.State.Running {
+		return "", errors.Errorf("container: `%s` is not running", attachContainer)
+	}
+	attachContainer = info.ID
+	mountDir, ok := info.GraphDriver.Data["MergedDir"]
+	if ok {
+		mergedDir = mountDir
+	}
 	if cli.config.MountDir != "" {
-		ctx, cancel := cli.withContent(cli.config.Timeout)
-		info, err := cli.client.ContainerInspect(ctx, attachContainer)
-		cancel()
-		if err != nil {
-			return "", errors.WithStack(err)
-		}
-		if !info.State.Running {
-			return "", errors.Errorf("container: `%s` is not running", attachContainer)
-		}
-		attachContainer = info.ID
-		mountDir, ok := info.GraphDriver.Data["MergedDir"]
 		mounts = []mount.Mount{}
-		if ok {
+		if mergedDir != "" {
 			mounts = append(mounts, mount.Mount{
 				Type:   "bind",
-				Source: mountDir,
+				Source: mergedDir,
 				Target: cli.config.MountDir,
 			})
 		}
@@ -296,6 +292,9 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 			mountArgs := strings.Split(m, ":")
 			mountLen := len(mountArgs)
 			if mountLen > 0 && mountLen <= 3 {
+				if strings.HasPrefix(mountArgs[0], "$c/") {
+					mountArgs[0] = path.Join(mergedDir, mountArgs[0][11:])
+				}
 				mountDefault := mount.Mount{
 					Type:     "bind",
 					ReadOnly: false,
@@ -339,14 +338,13 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		SecurityOpt: options.securityOpts,
 		CapAdd:      options.capAdds,
 		AutoRemove:  true,
-		//VolumesFrom: []string{attachContainer},
 	}
 
 	// default is not use ipc
 	if options.ipc {
 		hostConfig.IpcMode = container.IpcMode(targetName)
 	}
-	ctx, cancel := cli.withContent(cli.config.Timeout)
+	ctx, cancel = cli.withContent(cli.config.Timeout)
 	body, err := cli.client.ContainerCreate(
 		ctx,
 		conf,
@@ -385,11 +383,7 @@ func (cli *DebugCli) ContainerClean(id string) error {
 func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.IDResponse, error) {
 	var workDir = options.workDir
 	if workDir == "" && cli.config.MountDir != "" {
-		if strings.HasPrefix(options.targetDir, "/") {
-			workDir = cli.config.MountDir + options.targetDir
-		} else {
-			workDir = cli.config.MountDir + "/" + options.targetDir
-		}
+		workDir = path.Join(cli.config.MountDir, options.targetDir)
 	}
 	opt := types.ExecConfig{
 		User:         options.user,
@@ -409,7 +403,7 @@ func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.ID
 }
 
 // ExecStart exec start
-func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
+func (cli *DebugCli) ExecStart(_ execOptions, execID string) error {
 	execConfig := types.ExecStartCheck{
 		Tty: true,
 	}
@@ -434,31 +428,4 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 // FindContainer find container
 func (cli *DebugCli) FindContainer(name string) (string, error) {
 	return name, nil
-	//containerArgs := filters.NewArgs()
-	//containerArgs.Add("status", "running")
-	//if containerIDReg.MatchString(name) {
-	//	containerArgs.Add("id", name)
-	//} else {
-	//	containerArgs.Add("name", name)
-	//}
-	//ctx, cancel := cli.withContent(cli.config.Timeout)
-	//list, err := cli.client.ContainerList(ctx, types.ContainerListOptions{
-	//	Filters: containerArgs,
-	//})
-	//cancel()
-	//if err != nil {
-	//	return "", errors.WithStack(err)
-	//}
-	//listLen := len(list)
-	//if listLen == 1 {
-	//	return list[0].ID, nil
-	//}
-	//if listLen == 0 {
-	//	return "", errors.Errorf("not find %s container!", name)
-	//}
-	//var containerNames = []string{}
-	//for _, c := range list {
-	//	containerNames = append(containerNames, strings.Join(c.Names, "/"))
-	//}
-	//return "", errors.Errorf("ContainerList:\n%s\n", strings.Join(containerNames, "\n"))
 }

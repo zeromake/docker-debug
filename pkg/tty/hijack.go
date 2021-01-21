@@ -179,7 +179,6 @@ func setRawTerminal(streams stream.Streams) error {
 	return streams.Out().SetRawTerminal()
 }
 
-// nolint: unparam
 func restoreTerminal(streams stream.Streams, in io.Closer) error {
 	_ = streams.In().RestoreTerminal()
 	_ = streams.Out().RestoreTerminal()
