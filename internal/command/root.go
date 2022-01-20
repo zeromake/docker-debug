@@ -48,11 +48,8 @@ func newExecCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.container = args[0]
 			options.command = args[1:]
-			err := runExec(options)
-			if errors.Is(err, context.Canceled) {
-				return nil
-			}
-			return err
+			_ = runExec(options)
+			return nil
 		},
 	}
 
@@ -122,11 +119,11 @@ func buildCli(ctx context.Context, options execOptions) (*DebugCli, error) {
 
 func runExec(options execOptions) error {
 	var ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
 	logrus.SetLevel(logrus.ErrorLevel)
 	var containerID string
 	cli, err := buildCli(ctx, options)
 	if err != nil {
-		cancel()
 		return err
 	}
 	go func() {
@@ -137,13 +134,15 @@ func runExec(options execOptions) error {
 	}()
 	conf := cli.Config()
 	defer func() {
+		cc := cli.ctx
 		if err != nil {
+			logrus.Errorf("Error: %s", err.Error())
 			if errors.Is(err, context.Canceled) {
-				cli.ctx = context.Background()
+				cc = context.Background()
 			}
 		}
 		if containerID != "" {
-			err = cli.ContainerClean(containerID)
+			err = cli.ContainerClean(cc, containerID)
 			if err != nil {
 				logrus.Debugf("%+v", err)
 			}
@@ -155,13 +154,11 @@ func runExec(options execOptions) error {
 	}()
 	_, err = cli.Ping()
 	if err != nil {
-		cancel()
 		return err
 	}
 	// find image
 	images, err := cli.FindImage(conf.Image)
 	if err != nil {
-		cancel()
 		return err
 	}
 
@@ -169,23 +166,20 @@ func runExec(options execOptions) error {
 		// pull image
 		err = cli.PullImage(conf.Image)
 		if err != nil {
-			cancel()
 			return err
 		}
 	}
-	containerID, err = cli.FindContainer(options.container)
+	var originContainerID string
+	originContainerID, err = cli.FindContainer(options.container)
 	if err != nil {
-		cancel()
 		return err
 	}
-	containerID, err = cli.CreateContainer(containerID, options)
+	containerID, err = cli.CreateContainer(originContainerID, options)
 	if err != nil {
-		cancel()
 		return err
 	}
 	resp, err := cli.ExecCreate(options, containerID)
 	if err != nil {
-		cancel()
 		return err
 	}
 
@@ -198,7 +192,7 @@ func runExec(options execOptions) error {
 		}()
 	}()
 	if cli.In().IsTerminal() {
-		if err := tty.MonitorTtySize(ctx, cli.Client(), cli.Out(), resp.ID, true); err != nil {
+		if err = tty.MonitorTtySize(ctx, cli.Client(), cli.Out(), resp.ID, true); err != nil {
 			_, _ = fmt.Fprintln(cli.Err(), "Error monitoring TTY size:", err)
 		}
 	}
@@ -206,10 +200,8 @@ func runExec(options execOptions) error {
 	err = <-errCh
 	if err != nil {
 		logrus.Debugf("Error hijack: %s", err)
-		cancel()
 		return err
 	}
-	cancel()
 	return nil
 }
 

@@ -3,19 +3,20 @@ module github.com/zeromake/docker-debug
 go 1.12
 
 require (
-	github.com/BurntSushi/toml v0.3.1
-	github.com/Microsoft/go-winio v0.4.16 // indirect
+	github.com/BurntSushi/toml v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/containerd/containerd v1.4.3 // indirect
-	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.2+incompatible
+	github.com/containerd/containerd v1.5.9 // indirect
+	github.com/docker/docker v20.10.12+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/docker/go-units v0.4.0 // indirect
-	github.com/moby/term v0.0.0-20200915141129-7f0af18e79f2
+	github.com/google/go-cmp v0.5.7 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.1.1
+	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/cobra v1.3.0
+	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
+	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
+	google.golang.org/grpc v1.43.0 // indirect
+	gotest.tools/v3 v3.1.0 // indirect
 )

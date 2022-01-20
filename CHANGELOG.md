@@ -1,3 +1,34 @@
+<a name="0.7.4"></a>
+## [0.7.4] - 2022-01-20
+### Docs
+- docker client version
+
+### Feat
+- add -v $c/path
+
+### Fix
+- container exit but not stop,check external stop
+- update docker term dep
+
+
+<a name="0.7.3"></a>
+## [0.7.3] - 2020-05-08
+### Fix
+- config version migration
+
+
+<a name="0.7.2"></a>
+## [0.7.2] - 2020-05-08
+### Feat
+- config add client version
+
+### Fix
+- ci script error
+- ci script error
+- ci script error
+- upx reviewdog up version
+
+
 <a name="0.7.0"></a>
 ## [0.7.0] - 2020-04-21
 ### Docs
@@ -5,13 +36,18 @@
 
 ### Feat
 - update mod dep
-- add support `gdb`
+
+### Fix
+- update ci config
+- update ci config
+
 
 <a name="0.6.3"></a>
 ## [0.6.3] - 2019-12-15
 ### Fix
 - check container is running
 - update change log
+
 
 <a name="0.6.2"></a>
 ## [0.6.2] - 2019-06-20
@@ -193,8 +229,9 @@
 - tty = true
 - ignore add more
 
-
-[Unreleased]: https://github.com/zeromake/docker-debug/compare/0.7.0...HEAD
+[0.7.4]: https://github.com/zeromake/docker-debug/compare/0.7.3...0.7.4
+[0.7.3]: https://github.com/zeromake/docker-debug/compare/0.7.2...0.7.3
+[0.7.2]: https://github.com/zeromake/docker-debug/compare/0.7.0...0.7.2
 [0.7.0]: https://github.com/zeromake/docker-debug/compare/0.6.3...0.7.0
 [0.6.3]: https://github.com/zeromake/docker-debug/compare/0.6.2...0.6.3
 [0.6.2]: https://github.com/zeromake/docker-debug/compare/0.6.1...0.6.2

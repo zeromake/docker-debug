@@ -329,6 +329,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		Tty:        true,
 		OpenStdin:  true,
 		StdinOnce:  true,
+		StopSignal: "SIGKILL",
 	}
 	hostConfig := &container.HostConfig{
 		NetworkMode: container.NetworkMode(targetName),
@@ -369,8 +370,8 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 }
 
 // ContainerClean stop and remove container
-func (cli *DebugCli) ContainerClean(id string) error {
-	ctx, cancel := cli.withContent(cli.config.Timeout)
+func (cli *DebugCli) ContainerClean(ctx context.Context, id string) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 	timeout := time.Second
 	return errors.WithStack(cli.client.ContainerStop(
