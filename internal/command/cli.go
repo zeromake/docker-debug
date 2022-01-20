@@ -338,6 +338,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		SecurityOpt: options.securityOpts,
 		CapAdd:      options.capAdds,
 		AutoRemove:  true,
+		Privileged:  options.privileged,
 	}
 
 	// default is not use ipc
