@@ -1,6 +1,6 @@
 # Docker-debug
 
-[![Build Status](https://travis-ci.com/zeromake/docker-debug.svg?branch=master)](https://travis-ci.com/zeromake/docker-debug)
+[![Build Status](https://github.com/zeromake/docker-debug/actions/workflows/release.yml/badge.svg)](https://github.com/zeromake/docker-debug/actions/workflows/release.yml)
 [![Go Report Card](https://goreportcard.com/badge/zeromake/docker-debug)](https://goreportcard.com/report/zeromake/docker-debug)
 
 [English](README.md) ∙ [简体中文](README-zh-Hans.md)
