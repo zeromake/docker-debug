@@ -20,28 +20,68 @@ Install the `docker-debug` cli
 
 **mac brew**
 ```shell
-brew tap zeromake/docker-debug
-brew install docker-debug
+brew install zeromake/docker-debug/docker-debug
 ```
 
 **download binary file**
-``` shell
-# MacOS
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.7.4/docker-debug-darwin-amd64
+
+<details>
+<summary>
+<kbd>use bash or zsh</kbd>
+</summary>
+
+``` bash
+# get latest tag
+VERSION=`curl -w '%{url_effective}' -I -L -s -S https://github.com/zeromake/docker-debug/releases/latest -o /dev/null | awk -F/ '{print $NF}'`
+
+# MacOS Intel
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/${VERSION}/docker-debug-darwin-amd64
+
+# MacOS M1
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/${VERSION}/docker-debug-darwin-arm64
 
 # Linux
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.7.4/docker-debug-linux-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/${VERSION}/docker-debug-linux-amd64
 
 chmod +x ./docker-debug
 sudo mv docker-debug /usr/local/bin/
 
 # Windows
-curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/v0.7.4/docker-debug-windows-amd64.exe
+curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/${VERSION}/docker-debug-windows-amd64.exe
 ```
+
+</details>
+
+<details>
+<summary>
+<kbd>use fish</kbd>
+</summary>
+
+``` fish
+# get latest tag
+set VERSION (curl -w '%{url_effective}' -I -L -s -S https://github.com/zeromake/docker-debug/releases/latest -o /dev/null | awk -F/ '{print $NF}')
+
+# MacOS Intel
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/$VERSION/docker-debug-darwin-amd64
+
+# MacOS M1
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/$VERSION/docker-debug-darwin-arm64
+
+# Linux
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/$VERSION/docker-debug-linux-amd64
+
+chmod +x ./docker-debug
+sudo mv docker-debug /usr/local/bin/
+
+# Windows
+curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/$VERSION/docker-debug-windows-amd64.exe
+```
+</details>
+
 
 download the latest binary from the [release page](https://github.com/zeromake/docker-debug/releases/lastest) and add it to your PATH.
 
-Try it out!
+**Try it out!**
 ``` shell
 # docker-debug [OPTIONS] CONTAINER COMMAND [ARG...] [flags]
 docker-debug CONTAINER COMMAND

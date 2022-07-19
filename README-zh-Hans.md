@@ -18,29 +18,70 @@
 安装 `docker-debug` 命令行工具
 
 **mac brew**
+
 ```shell
-brew tap zeromake/docker-debug
-brew install docker-debug
+brew install zeromake/docker-debug/docker-debug
 ```
 
 **下载二进制文件**
-``` shell
-# MacOS
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.7.4/docker-debug-darwin-amd64
+
+<details>
+<summary>
+<kbd>使用 bash 或 zsh</kbd>
+</summary>
+
+``` bash
+# get latest tag
+VERSION=`curl -w '%{url_effective}' -I -L -s -S https://github.com/zeromake/docker-debug/releases/latest -o /dev/null | awk -F/ '{print $NF}'`
+
+# MacOS Intel
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/${VERSION}/docker-debug-darwin-amd64
+
+# MacOS M1
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/${VERSION}/docker-debug-darwin-arm64
 
 # Linux
-curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/v0.7.4/docker-debug-linux-amd64
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/${VERSION}/docker-debug-linux-amd64
 
 chmod +x ./docker-debug
 sudo mv docker-debug /usr/local/bin/
 
 # Windows
-curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/v0.7.4/docker-debug-windows-amd64.exe
+curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/${VERSION}/docker-debug-windows-amd64.exe
 ```
+
+</details>
+
+<details>
+<summary>
+<kbd>使用 fish</kbd>
+</summary>
+
+``` fish
+# get latest tag
+set VERSION (curl -w '%{url_effective}' -I -L -s -S https://github.com/zeromake/docker-debug/releases/latest -o /dev/null | awk -F/ '{print $NF}')
+
+# MacOS Intel
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/$VERSION/docker-debug-darwin-amd64
+
+# MacOS M1
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/$VERSION/docker-debug-darwin-arm64
+
+# Linux
+curl -Lo docker-debug https://github.com/zeromake/docker-debug/releases/download/$VERSION/docker-debug-linux-amd64
+
+chmod +x ./docker-debug
+sudo mv docker-debug /usr/local/bin/
+
+# Windows
+curl -Lo docker-debug.exe https://github.com/zeromake/docker-debug/releases/download/$VERSION/docker-debug-windows-amd64.exe
+```
+</details>
+
 
 或者到 [release page](https://github.com/zeromake/docker-debug/releases/lastest) 下载最新可执行文件并添加到 PATH。
 
-我们来试试！
+**我们来试试吧！**
 ``` shell
 # docker-debug [OPTIONS] CONTAINER COMMAND [ARG...] [flags]
 docker-debug CONTAINER COMMAND
