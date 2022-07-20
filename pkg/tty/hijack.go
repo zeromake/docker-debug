@@ -145,7 +145,7 @@ func (h *HijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error
 
 var errInvalidWrite = errors.New("invalid write result")
 
-func Copy(ctx context.Context, dst net.Conn, src io.Reader, readTimeout time.Duration) (written int64, err error) {
+func Copy(ctx context.Context, dst net.Conn, src io.Reader, writeTimeout time.Duration) (written int64, err error) {
 	size := 32 * 1024
 	buf := make([]byte, size)
 	for {
@@ -158,8 +158,8 @@ func Copy(ctx context.Context, dst net.Conn, src io.Reader, readTimeout time.Dur
 		nr, er := src.Read(buf)
 		if nr > 0 {
 			// docker container is stop check
-			if readTimeout > 0 {
-				err = dst.SetReadDeadline(time.Now().Add(readTimeout))
+			if writeTimeout > 0 {
+				err = dst.SetReadDeadline(time.Now().Add(writeTimeout))
 				if err != nil {
 					break
 				}

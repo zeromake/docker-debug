@@ -68,7 +68,7 @@ type Config struct {
 	ReadTimeout         time.Duration            `toml:"read_timeout"`
 }
 
-// Save save to default file
+// Save to default file
 func (c *Config) Save() error {
 	file, err := os.OpenFile(File, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {

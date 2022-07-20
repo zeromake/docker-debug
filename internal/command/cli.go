@@ -332,7 +332,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 	}
 	hostConfig := &container.HostConfig{
 		NetworkMode: container.NetworkMode(targetName),
-		UsernsMode:  container.UsernsMode(targetName),
+		UsernsMode:  container.UsernsMode(":" + attachContainer),
 		PidMode:     container.PidMode(targetName),
 		Mounts:      mounts,
 		SecurityOpt: options.securityOpts,
