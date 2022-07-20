@@ -158,9 +158,11 @@ func Copy(ctx context.Context, dst net.Conn, src io.Reader, readTimeout time.Dur
 		nr, er := src.Read(buf)
 		if nr > 0 {
 			// docker container is stop check
-			err = dst.SetReadDeadline(time.Now().Add(readTimeout))
-			if err != nil {
-				break
+			if readTimeout > 0 {
+				err = dst.SetReadDeadline(time.Now().Add(readTimeout))
+				if err != nil {
+					break
+				}
 			}
 			nw, ew := dst.Write(buf[0:nr])
 			if nw < 0 || nr < nw {
