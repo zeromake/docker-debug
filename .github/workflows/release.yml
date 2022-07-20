@@ -20,7 +20,7 @@ jobs:
       - name: build
         env:
           RELEASE_VERSION: ${{ github.ref_name }}
-        run: ./scripts/binary.sh darwin && ./scripts/binary.sh darwin-m1 && ./scripts/binary.sh windows && ./scripts/binary.sh linux
+        run: ./scripts/binary.sh darwin && ./scripts/binary.sh darwin-m1 && ./scripts/binary.sh windows && ./scripts/binary.sh linux && sha256sum ./dist/*
       - name: update
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
