@@ -200,13 +200,12 @@ func (cli *DebugCli) PullImage(image string) error {
 	domain, remainder := splitDockerDomain(image)
 	imageName := path.Join(domain, remainder)
 
-	ctx, cancel := cli.withContent(cli.config.Timeout * 30)
+	ctx, cancel := context.WithCancel(cli.ctx)
 	defer cancel()
 	responseBody, err := cli.client.ImagePull(ctx, imageName, types.ImagePullOptions{})
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
 	defer func() {
 		err = responseBody.Close()
 		if err != nil {
@@ -424,7 +423,7 @@ func (cli *DebugCli) ExecStart(_ execOptions, execID string) error {
 		Resp:         response,
 		TTY:          true,
 	}
-	return streamer.Stream(cli.ctx)
+	return streamer.Stream(cli.ctx, cli.config.ReadTimeout)
 }
 
 // FindContainer find container

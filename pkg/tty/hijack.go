@@ -39,7 +39,7 @@ type HijackedIOStreamer struct {
 // to/from the hijacked connection, blocking until it is either done reading
 // output, the user inputs the detach key sequence when in TTY mode, or when
 // the given context is cancelled.
-func (h *HijackedIOStreamer) Stream(ctx context.Context) error {
+func (h *HijackedIOStreamer) Stream(ctx context.Context, readTimeout time.Duration) error {
 	restoreInput, err := h.setupInput()
 	if err != nil {
 		return errors.Errorf("unable to setup input stream: %s", err)
@@ -48,7 +48,7 @@ func (h *HijackedIOStreamer) Stream(ctx context.Context) error {
 	defer restoreInput()
 	defer h.Resp.Close()
 	outputDone := h.beginOutputStream(restoreInput)
-	inputDone, detached := h.beginInputStream(ctx, restoreInput)
+	inputDone, detached := h.beginInputStream(ctx, restoreInput, readTimeout)
 
 	select {
 	case err = <-outputDone:
@@ -145,7 +145,7 @@ func (h *HijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error
 
 var errInvalidWrite = errors.New("invalid write result")
 
-func Copy(ctx context.Context, dst net.Conn, src io.Reader) (written int64, err error) {
+func Copy(ctx context.Context, dst net.Conn, src io.Reader, readTimeout time.Duration) (written int64, err error) {
 	size := 32 * 1024
 	buf := make([]byte, size)
 	for {
@@ -158,7 +158,7 @@ func Copy(ctx context.Context, dst net.Conn, src io.Reader) (written int64, err 
 		nr, er := src.Read(buf)
 		if nr > 0 {
 			// docker container is stop check
-			err = dst.SetReadDeadline(time.Now().Add(time.Second * 3))
+			err = dst.SetReadDeadline(time.Now().Add(readTimeout))
 			if err != nil {
 				break
 			}
@@ -189,13 +189,13 @@ func Copy(ctx context.Context, dst net.Conn, src io.Reader) (written int64, err 
 	return
 }
 
-func (h *HijackedIOStreamer) beginInputStream(ctx context.Context, restoreInput func()) (doneC <-chan struct{}, detachedC <-chan error) {
+func (h *HijackedIOStreamer) beginInputStream(ctx context.Context, restoreInput func(), readTimeout time.Duration) (doneC <-chan struct{}, detachedC <-chan error) {
 	inputDone := make(chan struct{})
 	detached := make(chan error)
 
 	go func() {
 		if h.InputStream != nil {
-			_, err := Copy(ctx, h.Resp.Conn, h.InputStream)
+			_, err := Copy(ctx, h.Resp.Conn, h.InputStream, readTimeout)
 			restoreInput()
 
 			logrus.Debug("[hijack] End of stdin")

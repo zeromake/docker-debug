@@ -20,7 +20,7 @@ var configName = "config.toml"
 // PathSeparator path separator
 var PathSeparator = string(os.PathSeparator)
 
-// ConfigFile 默认配置文件
+// File 默认配置文件
 var File = fmt.Sprintf(
 	"~%s%s%s%s",
 	PathSeparator,
@@ -65,6 +65,7 @@ type Config struct {
 	Timeout             time.Duration            `toml:"timeout"`
 	DockerConfigDefault string                   `toml:"config_default"`
 	DockerConfig        map[string]*DockerConfig `toml:"config"`
+	ReadTimeout         time.Duration            `toml:"read_timeout"`
 }
 
 // Save save to default file
@@ -144,6 +145,7 @@ func InitConfig() (*Config, error) {
 		DockerConfig: map[string]*DockerConfig{
 			"default": &dc,
 		},
+		ReadTimeout: time.Second * 3,
 	}
 	file, err := os.OpenFile(File, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
