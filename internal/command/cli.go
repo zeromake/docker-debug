@@ -63,8 +63,8 @@ type DebugCli struct {
 }
 
 // NewDebugCli new DebugCli
-func NewDebugCli(ops ...DebugCliOption) (*DebugCli, error) {
-	cli := &DebugCli{}
+func NewDebugCli(ctx context.Context, ops ...DebugCliOption) (*DebugCli, error) {
+	cli := &DebugCli{ctx: ctx}
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
 	}

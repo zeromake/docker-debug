@@ -98,23 +98,17 @@ func buildCli(ctx context.Context, options execOptions) (*DebugCli, error) {
 		opts = append(opts, WithClientConfig(dockerConfig))
 	} else {
 		name := conf.DockerConfigDefault
-		opt, ok := conf.DockerConfig[conf.DockerConfigDefault]
 		if options.name != "" {
 			name = options.name
-			opt, ok = conf.DockerConfig[options.name]
 		}
+		opt, ok := conf.DockerConfig[name]
 		if !ok {
 			return nil, errors.Errorf("not find %s docker config", name)
 		}
 		opts = append(opts, WithClientConfig(opt))
 	}
 
-	cli, err := NewDebugCli(opts...)
-	if err != nil {
-		return nil, err
-	}
-	cli.ctx = ctx
-	return cli, err
+	return NewDebugCli(ctx, opts...)
 }
 
 func runExec(options execOptions) error {
@@ -184,9 +178,9 @@ func runExec(options execOptions) error {
 	}
 
 	errCh := make(chan error, 1)
+	defer close(errCh)
 
 	go func() {
-		defer close(errCh)
 		errCh <- func() error {
 			return cli.ExecStart(options, resp.ID)
 		}()
@@ -197,8 +191,7 @@ func runExec(options execOptions) error {
 		}
 	}
 
-	err = <-errCh
-	if err != nil {
+	if err = <-errCh; err != nil {
 		logrus.Debugf("Error hijack: %s", err)
 		return err
 	}
