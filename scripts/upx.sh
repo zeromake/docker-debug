@@ -1,4 +1,4 @@
-#!/bin/env sh
+#!/bin/env bash
 source ./scripts/variables.env
 
 upx -q ${TARGET} -o ${TARGET}-upx

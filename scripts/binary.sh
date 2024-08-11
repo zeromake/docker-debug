@@ -1,4 +1,4 @@
-#!/bin/env sh
+#!/bin/env bash
 #
 # Build a static binary for the host OS/ARCH
 #
