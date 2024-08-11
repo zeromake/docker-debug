@@ -48,8 +48,7 @@ func newExecCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.container = args[0]
 			options.command = args[1:]
-			_ = runExec(options)
-			return nil
+			return runExec(options)
 		},
 	}
 
