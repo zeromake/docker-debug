@@ -2,15 +2,16 @@ package tty
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"os"
 	goSignal "os/signal"
 	"runtime"
+	"syscall"
 	"time"
 
-	"github.com/docker/docker/api/types"
+	"github.com/sirupsen/logrus"
+
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/signal"
 	"github.com/zeromake/docker-debug/pkg/stream"
 )
 
@@ -20,7 +21,7 @@ func ResizeTtyTo(ctx context.Context, client client.ContainerAPIClient, id strin
 		return
 	}
 
-	options := types.ResizeOptions{
+	options := container.ResizeOptions{
 		Height: height,
 		Width:  width,
 	}
@@ -62,7 +63,7 @@ func MonitorTtySize(ctx context.Context, client client.ContainerAPIClient, out *
 		}()
 	} else {
 		sigChan := make(chan os.Signal, 1)
-		goSignal.Notify(sigChan, signal.SIGWINCH)
+		goSignal.Notify(sigChan, syscall.Signal(0x1c))
 		go func() {
 			for range sigChan {
 				resizeTty()

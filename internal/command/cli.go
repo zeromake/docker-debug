@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	dockerImage "github.com/docker/docker/api/types/image"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -202,7 +204,7 @@ func (cli *DebugCli) PullImage(image string) error {
 
 	ctx, cancel := context.WithCancel(cli.ctx)
 	defer cancel()
-	responseBody, err := cli.client.ImagePull(ctx, imageName, types.ImagePullOptions{})
+	responseBody, err := cli.client.ImagePull(ctx, imageName, dockerImage.PullOptions{})
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -216,12 +218,12 @@ func (cli *DebugCli) PullImage(image string) error {
 }
 
 // FindImage find image
-func (cli *DebugCli) FindImage(image string) ([]types.ImageSummary, error) {
+func (cli *DebugCli) FindImage(image string) ([]dockerImage.Summary, error) {
 	args := filters.NewArgs()
 	args.Add("reference", image)
 	ctx, cancel := cli.withContent(cli.config.Timeout)
 	defer cancel()
-	return cli.client.ImageList(ctx, types.ImageListOptions{
+	return cli.client.ImageList(ctx, dockerImage.ListOptions{
 		Filters: args,
 	})
 }
@@ -362,7 +364,7 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 	err = cli.client.ContainerStart(
 		ctx,
 		body.ID,
-		types.ContainerStartOptions{},
+		container.StartOptions{},
 	)
 	cancel()
 	return body.ID, errors.WithStack(err)
@@ -372,11 +374,11 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 func (cli *DebugCli) ContainerClean(ctx context.Context, id string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
-	timeout := time.Second
+	var timeout int = 5
 	return errors.WithStack(cli.client.ContainerStop(
 		ctx,
 		id,
-		&timeout,
+		container.StopOptions{Timeout: &timeout},
 	))
 }
 

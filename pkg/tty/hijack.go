@@ -159,7 +159,7 @@ func Copy(ctx context.Context, dst net.Conn, src io.Reader, writeTimeout time.Du
 		if nr > 0 {
 			// docker container is stop check
 			if writeTimeout > 0 {
-				err = dst.SetReadDeadline(time.Now().Add(writeTimeout))
+				err = dst.SetWriteDeadline(time.Now().Add(writeTimeout))
 				if err != nil {
 					break
 				}

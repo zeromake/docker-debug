@@ -104,7 +104,7 @@ mv docker-debug /usr/local/bin
 docker-debug uses nicolaka/netshoot as the default image to run debug container.
 You can override the default image with cli flag, or even better, with config file ~/.docker-debug/config.toml
 ``` toml
-version = "0.7.4"
+version = "0.7.5"
 image = "nicolaka/netshoot:latest"
 mount_dir = "/mnt/container"
 timeout = 10000000000
