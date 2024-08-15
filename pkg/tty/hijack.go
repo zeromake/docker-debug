@@ -2,12 +2,6 @@ package tty
 
 import (
 	"context"
-	"io"
-	"net"
-	"runtime"
-	"sync"
-	"time"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -15,6 +9,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/zeromake/docker-debug/pkg/stream"
+	"io"
+	"runtime"
+	"sync"
 )
 
 // The default escape key sequence: ctrl-p, ctrl-q
@@ -39,7 +36,7 @@ type HijackedIOStreamer struct {
 // to/from the hijacked connection, blocking until it is either done reading
 // output, the user inputs the detach key sequence when in TTY mode, or when
 // the given context is cancelled.
-func (h *HijackedIOStreamer) Stream(ctx context.Context, readTimeout time.Duration) error {
+func (h *HijackedIOStreamer) Stream(ctx context.Context) error {
 	restoreInput, err := h.setupInput()
 	if err != nil {
 		return errors.Errorf("unable to setup input stream: %s", err)
@@ -48,7 +45,7 @@ func (h *HijackedIOStreamer) Stream(ctx context.Context, readTimeout time.Durati
 	defer restoreInput()
 	defer h.Resp.Close()
 	outputDone := h.beginOutputStream(restoreInput)
-	inputDone, detached := h.beginInputStream(ctx, restoreInput, readTimeout)
+	inputDone, detached := h.beginInputStream(restoreInput)
 
 	select {
 	case err = <-outputDone:
@@ -143,61 +140,13 @@ func (h *HijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error
 	return outputDone
 }
 
-var errInvalidWrite = errors.New("invalid write result")
-
-func Copy(ctx context.Context, dst net.Conn, src io.Reader, writeTimeout time.Duration) (written int64, err error) {
-	size := 32 * 1024
-	buf := make([]byte, size)
-	for {
-		select {
-		case <-ctx.Done():
-			err = ctx.Err()
-			return
-		default:
-		}
-		nr, er := src.Read(buf)
-		if nr > 0 {
-			// docker container is stop check
-			if writeTimeout > 0 {
-				err = dst.SetWriteDeadline(time.Now().Add(writeTimeout))
-				if err != nil {
-					break
-				}
-			}
-			nw, ew := dst.Write(buf[0:nr])
-			if nw < 0 || nr < nw {
-				nw = 0
-				if ew == nil {
-					ew = errInvalidWrite
-				}
-			}
-			written += int64(nw)
-			if ew != nil {
-				err = ew
-				break
-			}
-			if nr != nw {
-				err = io.ErrShortWrite
-				break
-			}
-		}
-		if er != nil {
-			if er != io.EOF {
-				err = er
-			}
-			break
-		}
-	}
-	return
-}
-
-func (h *HijackedIOStreamer) beginInputStream(ctx context.Context, restoreInput func(), readTimeout time.Duration) (doneC <-chan struct{}, detachedC <-chan error) {
+func (h *HijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan struct{}, detachedC <-chan error) {
 	inputDone := make(chan struct{})
 	detached := make(chan error)
 
 	go func() {
 		if h.InputStream != nil {
-			_, err := Copy(ctx, h.Resp.Conn, h.InputStream, readTimeout)
+			_, err := io.Copy(h.Resp.Conn, h.InputStream)
 			restoreInput()
 
 			logrus.Debug("[hijack] End of stdin")

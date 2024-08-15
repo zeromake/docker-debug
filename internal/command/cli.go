@@ -383,12 +383,13 @@ func (cli *DebugCli) ContainerClean(ctx context.Context, id string) error {
 }
 
 // ExecCreate exec create
-func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.IDResponse, error) {
+func (cli *DebugCli) ExecCreate(options execOptions, containerStr string) (types.IDResponse, error) {
 	var workDir = options.workDir
 	if workDir == "" && cli.config.MountDir != "" {
 		workDir = path.Join(cli.config.MountDir, options.targetDir)
 	}
-	opt := types.ExecConfig{
+	h, w := cli.out.GetTtySize()
+	opt := container.ExecOptions{
 		User:         options.user,
 		Privileged:   options.privileged,
 		DetachKeys:   options.detachKeys,
@@ -398,34 +399,67 @@ func (cli *DebugCli) ExecCreate(options execOptions, container string) (types.ID
 		AttachStdout: true,
 		WorkingDir:   workDir,
 		Cmd:          options.command,
+		ConsoleSize:  &[2]uint{h, w},
 	}
 	ctx, cancel := cli.withContent(cli.config.Timeout)
 	defer cancel()
-	resp, err := cli.client.ContainerExecCreate(ctx, container, opt)
+	resp, err := cli.client.ContainerExecCreate(ctx, containerStr, opt)
 	return resp, errors.WithStack(err)
 }
 
 // ExecStart exec start
-func (cli *DebugCli) ExecStart(_ execOptions, execID string) error {
-	execConfig := types.ExecStartCheck{
-		Tty: true,
+func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
+	h, w := cli.out.GetTtySize()
+	execConfig := container.ExecStartOptions{
+		Tty:         true,
+		ConsoleSize: &[2]uint{h, w},
 	}
 
 	ctx, cancel := cli.withContent(cli.config.Timeout)
-	response, err := cli.client.ContainerExecAttach(ctx, execID, execConfig)
 	defer cancel()
+	response, err := cli.client.ContainerExecAttach(ctx, execID, execConfig)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	streamer := tty.HijackedIOStreamer{
-		Streams:      cli,
-		InputStream:  cli.in,
-		OutputStream: cli.out,
-		ErrorStream:  cli.err,
-		Resp:         response,
-		TTY:          true,
+	defer response.Close()
+	errCh := make(chan error, 1)
+	go func() {
+		defer close(errCh)
+		streamer := tty.HijackedIOStreamer{
+			Streams:      cli,
+			InputStream:  cli.in,
+			OutputStream: cli.out,
+			ErrorStream:  cli.err,
+			Resp:         response,
+			TTY:          true,
+			DetachKeys:   options.detachKeys,
+		}
+		errCh <- streamer.Stream(cli.ctx)
+	}()
+	if err := tty.MonitorTtySize(cli.ctx, cli.client, cli.out, execID, true); err != nil {
+		_, _ = fmt.Fprintln(cli.err, "Error monitoring TTY size:", err)
 	}
-	return streamer.Stream(cli.ctx, cli.config.ReadTimeout)
+	if err := <-errCh; err != nil {
+		logrus.Debugf("Error hijack: %s", err)
+		return err
+	}
+	return getExecExitStatus(cli.ctx, cli.client, execID)
+}
+
+func getExecExitStatus(ctx context.Context, apiClient client.ContainerAPIClient, execID string) error {
+	resp, err := apiClient.ContainerExecInspect(ctx, execID)
+	if err != nil {
+		// If we can't connect, then the daemon probably died.
+		if !client.IsErrConnectionFailed(err) {
+			return err
+		}
+		return errors.Errorf("ExitStatus %d", -1)
+	}
+	status := resp.ExitCode
+	if status != 0 {
+		return errors.Errorf("ExitStatus %d", status)
+	}
+	return nil
 }
 
 // FindContainer find container
