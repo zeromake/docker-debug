@@ -246,8 +246,6 @@ func containerMode(name string) string {
 // CreateContainer create new container and attach target container resource
 func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions) (string, error) {
 	var mounts []mount.Mount
-	var mergedDir string
-	var ok bool
 	ctx, cancel := cli.withContent(cli.config.Timeout)
 	info, err := cli.client.ContainerInspect(ctx, attachContainer)
 	cancel()
@@ -258,19 +256,16 @@ func (cli *DebugCli) CreateContainer(attachContainer string, options execOptions
 		return "", errors.Errorf("container: `%s` is not running", attachContainer)
 	}
 	attachContainer = info.ID
-	mountDir, ok := info.GraphDriver.Data["MergedDir"]
-	if ok {
-		mergedDir = mountDir
+	mergedDir, ok := info.GraphDriver.Data["MergedDir"]
+	if !ok || mergedDir == "" {
+		return "", fmt.Errorf("container: `%s` not found merged dir", attachContainer)
 	}
 	if cli.config.MountDir != "" {
-		mounts = []mount.Mount{}
-		if mergedDir != "" {
-			mounts = append(mounts, mount.Mount{
-				Type:   "bind",
-				Source: mergedDir,
-				Target: cli.config.MountDir,
-			})
-		}
+		mounts = append(mounts, mount.Mount{
+			Type:   "bind",
+			Source: mergedDir,
+			Target: cli.config.MountDir,
+		})
 		for _, i := range info.Mounts {
 			var mountType = i.Type
 			if i.Type == "volume" {
