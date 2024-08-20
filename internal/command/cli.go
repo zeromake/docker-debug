@@ -8,23 +8,23 @@ import (
 	"strings"
 	"time"
 
-	dockerImage "github.com/docker/docker/api/types/image"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
+	dockerImage "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/strslice"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/zeromake/docker-debug/internal/config"
 	"github.com/zeromake/docker-debug/pkg/opts"
-	"github.com/zeromake/docker-debug/pkg/tty"
-
-	"github.com/docker/docker/client"
 	"github.com/zeromake/docker-debug/pkg/stream"
+	"github.com/zeromake/docker-debug/pkg/tty"
 )
 
 const (
@@ -439,6 +439,32 @@ func (cli *DebugCli) ExecStart(options execOptions, execID string) error {
 		return err
 	}
 	return getExecExitStatus(cli.ctx, cli.client, execID)
+}
+
+// WatchContainer watch container
+func (cli *DebugCli) WatchContainer(ctx context.Context, containerID string) error {
+	subCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	filterArgs := filters.NewArgs()
+	filterArgs.Add("container", containerID)
+	messages, errs := cli.client.Events(subCtx, events.ListOptions{
+		Filters: filterArgs,
+	})
+
+	for {
+		select {
+		case event := <-messages:
+			if event.Type == events.ContainerEventType {
+				switch event.Action {
+				case events.ActionDestroy, events.ActionDie, events.ActionKill, events.ActionStop:
+					return nil
+				}
+			}
+		case err := <-errs:
+			return err
+		}
+	}
 }
 
 func getExecExitStatus(ctx context.Context, apiClient client.ContainerAPIClient, execID string) error {
