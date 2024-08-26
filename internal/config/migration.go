@@ -4,6 +4,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 	"github.com/zeromake/docker-debug/version"
+	"sort"
 	"strings"
 )
 
@@ -39,6 +40,9 @@ func MigrationConfig(conf *Config) error {
 		conf.MountDir = conf.MountDir[:l-1]
 	}
 	if v2.LT(v1) {
+		sort.Slice(migrationArr, func(i, j int) bool {
+			return migrationArr[i].Version.LT(migrationArr[j].Version)
+		})
 		for _, m := range migrationArr {
 			if v2.LT(m.Version) {
 				err = m.Up(conf)
