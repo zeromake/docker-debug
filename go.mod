@@ -1,12 +1,13 @@
 module github.com/zeromake/docker-debug
 
-go 1.22.0
+go 1.23.0
+
 toolchain go1.24.1
 
 require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/docker/docker v27.4.1+incompatible
+	github.com/docker/docker v28.0.0+incompatible
 	github.com/moby/term v0.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
